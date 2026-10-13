@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sarashina API UX/UI 設計・実装ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=Noto+Serif+JP:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #fffefb;
+  --ink: #1a1a1a;
+  --muted: #5c5c5c;
+  --accent: #2e5c8a;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --accent-medium: color-mix(in oklab, var(--accent) 25%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
+  --step--2: clamp(0.75rem, 0.72rem + 0.15vw, 0.85rem);
+  --step--1: clamp(0.85rem, 0.8rem + 0.25vw, 1rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.08rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.25rem + 1.2vw, 2.2rem);
+  --step-3: clamp(2rem, 1.5rem + 2.5vw, 3.2rem);
+  --step-4: clamp(2.6rem, 1.9rem + 3.5vw, 4.2rem);
+  --space: clamp(1rem, 0.8rem + 1vw, 1.6rem);
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 6px 18px -8px rgba(0,0,0,0.14);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.06), 0 14px 36px -10px rgba(0,0,0,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Typography */
+h1, h2, h3, h4 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", "Noto Serif JP", serif;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+h1 { font-size: var(--step-4); }
+h2 { font-size: var(--step-3); margin-top: calc(var(--space) * 2.5); }
+h3 { font-size: var(--step-2); margin-top: calc(var(--space) * 2); }
+h4 { font-size: var(--step-1); margin-top: calc(var(--space) * 1.5); }
+
+p, ul, ol { margin-top: calc(var(--space) * 0.8); }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+a:hover { border-bottom-color: var(--accent); }
+
+img { max-width: 100%; height: auto; display: block; }
+
+/* Layout */
+.container {
+  width: min(90%, 1100px);
+  margin-inline: auto;
+}
+
+/* Header / Hero */
+header {
+  position: relative;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  overflow: hidden;
+}
+
+header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 40%, rgba(46,92,138,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 40% at 80% 60%, rgba(46,92,138,0.04) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero {
+  position: relative;
+  padding: calc(var(--space) * 5) 0 calc(var(--space) * 4);
+}
+
+.hero-label {
+  display: inline-block;
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--line-strong);
+  padding: 0.35em 1em;
+  border-radius: 999px;
+  margin-bottom: calc(var(--space) * 1.2);
+}
+
+.hero h1 {
+  max-width: 18ch;
+  font-feature-settings: "palt";
+}
+
+.hero-lead {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: 52ch;
+  margin-top: calc(var(--space) * 1.2);
+  line-height: 1.7;
+}
+
+.hero-meta {
+  display: flex;
+  gap: calc(var(--space) * 1.5);
+  margin-top: calc(var(--space) * 2);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+}
+
+.hero-meta span::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  opacity: 0.6;
+}
+
+/* Vertical rule signature */
+.vr {
+  width: 1px;
+  background: var(--line-strong);
+  align-self: stretch;
+}
+
+/* Section styling */
+section {
+  padding: calc(var(--space) * 3) 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--space) * 0.8);
+  margin-bottom: calc(var(--space) * 1.5);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: calc(var(--space) * 0.6);
+}
+
+.section-num {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.35;
+  line-height: 1;
+}
+
+.section-title {
+  margin: 0;
+  font-size: var(--step-2);
+}
+
+/* Cards */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.3);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+
+.card h4 {
+  margin-top: 0;
+  font-size: var(--step-1);
+}
+
+.card p, .card ul {
+  font-size: var(--step--1);
+  color: var(--muted);
+  margin-top: 0.5em;
+}
+
+/* Grid */
+.grid {
+  display: grid;
+  gap: calc(var(--space) * 1);
+}
+
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+.grid-4 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); }
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: calc(var(--space) * 1.2);
+  font-size: var(--step--1);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+th, td {
+  padding: 0.85em 1em;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+th {
+  background: var(--accent-weak);
+  font-weight: 600;
+  font-size: var(--step--2);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+tr:last-child td { border-bottom: none; }
+
+tr:hover td { background: rgba(46,92,138,0.02); }
+
+code, pre {
+  font-family: "SF Mono", "Menlo", "Monaco", "Cascadia Code", monospace;
+  font-size: 0.9em;
+}
+
+code {
+  background: var(--accent-weak);
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+pre {
+  background: #1e1e1e;
+  color: #e8e8e8;
+  padding: calc(var(--space) * 1);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-top: calc(var(--space) * 0.8);
+  line-height: 1.6;
+}
+
+pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+/* Code block language label */
+.code-block {
+  position: relative;
+}
+
+.code-label {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: var(--step--2);
+  padding: 0.2em 0.7em;
+  border-bottom-left-radius: var(--radius);
+  letter-spacing: 0.05em;
+}
+
+/* Lists */
+ul.clean, ol.clean {
+  list-style: none;
+  padding: 0;
+}
+
+ul.clean li {
+  position: relative;
+  padding-left: 1.4em;
+}
+
+ul.clean li::before {
+  content: "〜";
+  position: absolute;
+  left: 0;
+  color: var(--accent);
+  opacity: 0.7;
+}
+
+/* Callout */
+.callout {
+  background: var(--accent-weak);
+  border-left: 3px solid var(--accent);
+  padding: calc(var(--space) * 1) calc(var(--space) * 1.2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-top: calc(var(--space) * 1.2);
+  font-size: var(--step--1);
+}
+
+.callout strong {
+  color: var(--accent);
+}
+
+/* Tag / pill */
+.pill {
+  display: inline-block;
+  font-size: var(--step--2);
+  font-weight: 500;
+  padding: 0.2em 0.7em;
+  border-radius: 999px;
+  background: var(--accent-medium);
+  color: var(--accent);
+  letter-spacing: 0.03em;
+}
+
+/* Process step */
+.process-step {
+  display: flex;
+  gap: calc(var(--space) * 1);
+  align-items: flex-start;
+  margin-top: calc(var(--space) * 1.2);
+}
+
+.process-num {
+  flex-shrink: 0;
+  width: 2.2em;
+  height: 2.2em;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  border-radius: 50%;
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  font-size: var(--step-1);
+  line-height: 1;
+}
+
+.process-body {
+  flex: 1;
+}
+
+.process-body h4 {
+  margin-top: 0;
+}
+
+/* Figure / diagram placeholder */
+.figure {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.5);
+  margin-top: calc(var(--space) * 1.2);
+  text-align: center;
+}
+
+.figure svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Footer */
+footer {
+  border-top: 1px solid var(--line);
+  margin-top: calc(var(--space) * 4);
+  padding: calc(var(--space) * 2) 0;
+  text-align: center;
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+/* Print */
+@media print {
+  body { background: #fff; }
+  header, section { padding: 1.5rem 0; }
+  .no-print { display: none; }
+  a { color: #000; border-bottom: 1px solid #999; }
+}
+
+@page { size: A4; margin: 16mm; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .card { transition: none; }
+}
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Small utility */
+.mt-1 { margin-top: calc(var(--space) * 0.5); }
+.mt-2 { margin-top: calc(var(--space) * 1); }
+.mt-3 { margin-top: calc(var(--space) * 1.5); }
+.text-muted { color: var(--muted); }
+.text-small { font-size: var(--step--1); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container hero">
+    <span class="hero-label">Sarashina API 設計ガイド</span>
+    <h1>Sarashina API を活用した UX/UI 設計・実装手法</h1>
+    <p class="hero-lead">
+      日本語に特化した国産LLM「Sarashina」のAPIを組み込む際の、UX設計・インターフェース設計・フロントエンド実装の手法を体系化したガイド。
+    </p>
+    <div class="hero-meta">
+      <span>2026年10月版</span>
+      <span>対象：Sarashina3 シリーズ</span>
+      <span>6モデル対応</span>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <section id="overview">
+    <div class="section-header">
+      <span class="section-num">01</span>
+      <h2 class="section-title">Sarashina API の概要と設計思想</h2>
+    </div>
+    <p>
+      Sarashina API は、SB Intuitions が開発した国産大規模言語モデル「Sarashina」を、HTTP API 経由で利用できるサービスです。日本語の文脈理解・文化的ニュアンス・敬語表現に強みを持ち、国内データセンターでの運用によりデータ主権（ソブリン性）を確保しています。
+    </p>
+    <div class="callout">
+      <strong>設計上の核心:</strong> Sarashina は「日本語らしさ」を体現するモデルです。UX/UI も単なる機能の羅列ではなく、日本語の豊かさ（婉曲表現、省略、文脈推論）をユーザー体験として昇華させる設計が求められます。
+    </div>
+
+    <h3>提供モデルと用途マトリクス</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>モデルID</th>
+          <th>コンテキスト</th>
+          <th>主な用途</th>
+          <th>APIカテゴリ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>sarashina3-mini</code></td>
+          <td>128k tokens</td>
+          <td>標準対話、Tool-calling、数学・コーディング</td>
+          <td>Chat Completions</td>
+        </tr>
+        <tr>
+          <td><code>sarashina3-nano</code></td>
+          <td>128k tokens</td>
+          <td>高速バッチ処理（抽出・要約・分類）</td>
+          <td>Chat Completions</td>
+        </tr>
+        <tr>
+          <td><code>sarashina3-guard</code></td>
+          <td>64k tokens</td>
+          <td>入出力の安全性判定・モデレーション</td>
+          <td>Chat Completions</td>
+        </tr>
+        <tr>
+          <td><code>sarashina3-embedding</code></td>
+          <td>8,000 tokens</td>
+          <td>テキストベクトル化、RAG候補抽出</td>
+          <td>Embeddings</td>
+        </tr>
+        <tr>
+          <td><code>sarashina3-rerank</code></td>
+          <td>8,000 tokens</td>
+          <td>クエリと文書の関連度スコアリング</td>
+          <td>Rerank</td>
+        </tr>
+        <tr>
+          <td><code>sarashina3-translate</code></td>
+          <td>5,000文字</td>
+          <td>日英・英日訳（文脈・トーン考慮）</td>
+          <td>Translate</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="principles">
+    <div class="section-header">
+      <span class="section-num">02</span>
+      <h2 class="section-title">UX/UI 設計の基本原則</h2>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>1. 日本語の「間」を尊重する</h4>
+        <p>
+          日本語は省略や婉曲を前提とします。UI上では「完全な文を強制する」より、「意図を補完する補助」を提供します。例：箇条書き入力を受け付け、AIが文脈を補って生成する。
+        </p>
+      </div>
+      <div class="card">
+        <h4>2. 敬語レベルの可視化</h4>
+        <p>
+          ビジネス用途では、敬語の度合いをユーザーが選択・確認できるUIが重要です。丁寧語・謙譲語・尊敬語のトーンをプレビューし、修正できるフローを設けます。
+        </p>
+      </div>
+      <div class="card">
+        <h4>3. 遅延の設計</h4>
+        <p>
+          LLMの応答には時間がかかります。スケルトン画面、ストリーミング表示、進行状況の可視化により、ユーザーの不安を軽減します。特に日本語の長文生成では待機体験が重要です。
+        </p>
+      </div>
+      <div class="card">
+        <h4>4. 安全性の透明性</h4>
+        <p>
+          Guardモデルによる判定結果を、過剰に威圧的にならず、かつ明確に伝えます。「生成できません」ではなく、「表現を調整して再作成しますか？」といった前向きな回復設計を採用します。
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section id="endpoint-patterns">
+    <div class="section-header">
+      <span class="section-num">03</span>
+      <h2 class="section-title">エンドポイント別 UI パターン</h2>
+    </div>
+
+    <h3>Chat Completions（対話・生成）</h3>
+    <p>対話モデル <code>sarashina3-mini</code> と軽量モデル <code>sarashina3-nano</code> は、最も汎用的に使われるエンドポイントです。</p>
+
+    <h4>推奨 UI パターン</h4>
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>チャットインターフェース</h4>
+        <ul class="clean text-small">
+          <li>吹き出し形式のメッセージ表示</li>
+          <li>ストリーミング応答の文字ごと表示</li>
+          <li>再生成・コピー・評価（👍/👎）ボタン</li>
+          <li>会話履歴のセッション管理</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>テンプレート駆動生成</h4>
+        <ul class="clean text-small">
+          <li>「議事録」「報告書」「メール」など業務テンプレート選択</li>
+          <li>入力項目をフォーム化し、AIが体裁を整える</li>
+          <li>生成後のワンクリック編集モード</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="code-block mt-2">
+      <div class="code-label">CONCEPT</div>
+      <pre><code>// チャットUI の状態設計（React想定）
+interface ChatMessage {
+  role: "user" | "assistant" | "system";
+  content: string;
+  status: "sending" | "streaming" | "done" | "error";
+  guardResult?: GuardDecision; // guardモデルの判定結果
+}
+
+// 送信フロー
+async function sendMessage(text: string) {
+  // 1. ユーザーメッセージを即座に表示（楽観的UI）
+  appendMessage({ role: "user", content: text, status: "done" });
+
+  // 2. ストリーミング応答を受信しながら表示更新
+  const stream = await fetchChatStream({
+    model: "sarashina3-mini",
+    messages: buildHistory(),
+    stream: true,
+  });
+
+  // 3. chunkごとに assistant メッセージを更新
+  for await (const chunk of stream) {
+    appendContent(chunk.content);
+  }
+}</code></pre>
+    </div>
+
+    <h3 class="mt-3">Embeddings（埋め込み・検索）</h3>
+    <p><code>sarashina3-embedding</code> は、文書やFAQをベクトル化し、意味的類似度で検索するRAGシステムの核となります。</p>
+
+    <h4>推奨 UI パターン</h4>
+    <div class="grid grid-3">
+      <div class="card">
+        <h4>セマンティック検索</h4>
+        <p class="text-small">キーワードでは捉えにくい「意味的な近さ」で文書を探せる検索窓。類似度スコアを薄いバーで視覚化します。</p>
+      </div>
+      <div class="card">
+        <h4>文書アップロード＋問い合わせ</h4>
+        <p class="text-small">PDFやテキストをアップロード後、内容について質問できる「文書チャット」UI。引用元ページを明記します。</p>
+      </div>
+      <div class="card">
+        <h4>クラスタリング可視化</h4>
+        <p class="text-small">大量の文書を埋め込み空間上でグループ化し、トピックごとに色分け表示。探索的な情報発見を支援します。</p>
+      </div>
+    </div>
+
+    <div class="code-block mt-2">
+      <div class="code-label">CONCEPT</div>
+      <pre><code>// RAG検索フロー
+async function semanticSearch(query: string) {
+  // 1. クエリをベクトル化
+  const queryVec = await embedText(query, "sarashina3-embedding");
+
+  // 2. ベクトルDBで近傍検索（例：pgvector, Milvus, Pinecone）
+  const candidates = await vectorSearch(queryVec, { topK: 20 });
+
+  // 3. UIに「関連度スコア」付きで一覧表示
+  return candidates.map(c => ({
+    title: c.title,
+    excerpt: c.text.slice(0, 120) + "…",
+    scoreBar: Math.round(c.similarity * 100), // %表示
+    source: c.meta.source,
+  }));
+}</code></pre>
+    </div>
+
+    <h3 class="mt-3">Rerank（リランキング）</h3>
+    <p><code>sarashina3-rerank</code> は、検索で得た候補文書をクエリとの関連度で再並び替えします。RAGの精度向上に必須の後段処理です。</p>
+
+    <h4>推奨 UI パターン</h4>
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>検索結果の再構成</h4>
+        <ul class="clean text-small">
+          <li>初回検索結果の上部に「関連度で並び替えました」という補足表示</li>
+          <li>各結果に「関連度」バッジ（高・中・低）を付与</li>
+          <li>上位3件を「おすすめ」として強調表示</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>フィードバックループ</h4>
+        <ul class="clean text-small">
+          <li>「この結果は役に立ちましたか？」の評価を収集</li>
+          <li>評価データをrerank指示のチューニングに活用</li>
+          <li>ユーザーの業種・部門ごとに最適化された並び順を学習</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="mt-3">Translate（翻訳）</h3>
+    <p><code>sarashina3-translate</code> は、文脈やトーンを汲んだ自然な日英・英日翻訳を提供します。単なる単語変換ではなく、ビジネスメールや技術文書のニュアンスを保持します。</p>
+
+    <h4>推奨 UI パターン</h4>
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>並列対訳エディタ</h4>
+        <ul class="clean text-small">
+          <li>左側に原文、右側に訳文をリアルタイム表示</li>
+          <li>段落単位でハイライト同期（ホバーで対応箇所を強調）</li>
+          <li>「ビジネス」「カジュアル」「技術」などトーン選択プルダウン</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>バッチ翻訳</h4>
+        <ul class="clean text-small">
+          <li>CSV/Excelアップロード後、列単位で一括翻訳</li>
+          <li>進捗バーと残り時間推定を表示</li>
+          <li>翻訳結果の差分（原文との対比）をハイライト</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 class="mt-3">Guard（安全性判定）</h3>
+    <p><code>sarashina3-guard</code> は、T1〜T12 カテゴリで入出力テキストの安全性を判定します。UI上では「ブロック」ではなく「ガイド」として機能させるのが重要です。</p>
+
+    <h4>推奨 UI パターン</h4>
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>穏やかな警告</h4>
+        <ul class="clean text-small">
+          <li>赤色の強い警告ではなく、落ち着いたトーンで理由を説明</li>
+          <li>「別の表現を試す」ボタンを即座に提供</li>
+          <li>カテゴリ別アイコンで直感的にリスクを伝達</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h4>運用ダッシュボード</h4>
+        <ul class="clean text-small">
+          <li>管理者向けにカテゴリ別検出数の時系列グラフを提供</li>
+          <li>ユーザー単位・部門単位の傾向分析</li>
+          <li>誤検出のフィードバック送信機能</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="section-header">
+      <span class="section-num">04</span>
+      <h2 class="section-title">実装アーキテクチャ</h2>
+    </div>
+
+    <h3>推奨構成（Next.js + API Routes 例）</h3>
+    <div class="figure">
+      <svg viewBox="0 0 800 420" xmlns="http://www.w3.org/2000/svg" style="max-width:760px">
+        <rect x="20" y="160" width="160" height="100" rx="8" fill="#fff" stroke="#2e5c8a" stroke-width="1.5"/>
+        <text x="100" y="195" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="600">Browser</text>
+        <text x="100" y="215" text-anchor="middle" font-size="11" fill="#5c5c5c">React / Vue</text>
+        <text x="100" y="232" text-anchor="middle" font-size="11" fill="#5c5c5c">Streaming UI</text>
+
+        <rect x="260" y="100" width="180" height="90" rx="8" fill="#fff" stroke="#2e5c8a" stroke-width="1.5"/>
+        <text x="350" y="135" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="600">API Route</text>
+        <text x="350" y="155" text-anchor="middle" font-size="11" fill="#5c5c5c">/api/chat</text>
+        <text x="350" y="172" text-anchor="middle" font-size="11" fill="#5c5c5c">/api/embed</text>
+
+        <rect x="260" y="230" width="180" height="90" rx="8" fill="#fff" stroke="#2e5c8a" stroke-width="1.5"/>
+        <text x="350" y="265" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="600">Vector DB</text>
+        <text x="350" y="285" text-anchor="middle" font-size="11" fill="#5c5c5c">pgvector / Milvus</text>
+        <text x="350" y="302" text-anchor="middle" font-size="11" fill="#5c5c5c">Embeddings 保存</text>
+
+        <rect x="540" y="40" width="220" height="100" rx="8" fill="#e8f0f8" stroke="#2e5c8a" stroke-width="2"/>
+        <text x="650" y="75" text-anchor="middle" font-size="14" fill="#1a1a1a" font-weight="700">Sarashina API</text>
+        <text x="650" y="95" text-anchor="middle" font-size="11" fill="#5c5c5c">Chat / Embed / Rerank</text>
+        <text x="650" y="112" text-anchor="middle" font-size="11" fill="#5c5c5c">Translate / Guard</text>
+
+        <rect x="540" y="180" width="220" height="80" rx="8" fill="#fff" stroke="#2e5c8a" stroke-width="1.5"/>
+        <text x="650" y="215" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="600">Cache / Queue</text>
+        <text x="650" y="235" text-anchor="middle" font-size="11" fill="#5c5c5c">Redis / BullMQ</text>
+
+        <rect x="540" y="300" width="220" height="80" rx="8" fill="#fff" stroke="#2e5c8a" stroke-width="1.5"/>
+        <text x="650" y="335" text-anchor="middle" font-size="13" fill="#1a1a1a" font-weight="600">Object Storage</text>
+        <text x="650" y="355" text-anchor="middle" font-size="11" fill="#5c5c5c">PDF / 文書アップロード</text>
+
+        <!-- Arrows -->
+        <line x1="180" y1="200" x2="250" y2="145" stroke="#999" stroke-width="1.2"/>
+        <polygon points="250,145 245,150 240,142" fill="#999"/>
+
+        <line x1="180" y1="220" x2="250" y2="250" stroke="#999" stroke-width="1.2"/>
+        <polygon points="250,250 242,245 245,255" fill="#999"/>
+
+        <line x1="440" y1="145" x2="530" y2="100" stroke="#2e5c8a" stroke-width="1.5"/>
+        <polygon points="530,100 522,105 525,95" fill="#2e5c8a"/>
+
+        <line x1="440" y1="260" x2="530" y2="210" stroke="#999" stroke-width="1.2"/>
+        <polygon points="530,210 523,215 525,205" fill="#999"/>
+
+        <line x1="440" y1="290" x2="530" y2="330" stroke="#999" stroke-width="1.2"/>
+        <polygon points="530,330 522,325 525,335" fill="#999"/>
+      </svg>
+    </div>
+
+    <h3>主要コンポーネントの責務</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>層</th>
+          <th>責務</th>
+          <th>Sarashina API 利用例</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Presentation</td>
+          <td>ストリーミング表示、入力補助、状態可視化</td>
+          <td>チャットUI、翻訳エディタ、検索結果一覧</td>
+        </tr>
+        <tr>
+          <td>API Gateway</td>
+          <td>認証、レート制限、リトライ、ログ</td>
+          <td>API Key のサーバ側管理、Guard判定の前後処理</td>
+        </tr>
+        <tr>
+          <td>Application</td>
+          <td>ユースケース調整、プロンプト構築、RAGパイプライン</td>
+          <td>Embed → VectorSearch → Rerank → Chat の連携</td>
+        </tr>
+        <tr>
+          <td>Infrastructure</td>
+          <td>ベクトルDB、キャッシュ、ストレージ</td>
+          <td>Embedding の永続化、文書の前処理・チャンキング</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="implementation">
+    <div class="section-header">
+      <span class="section-num">05</span>
+      <h2 class="section-title">フロントエンド実装の詳細手法</h2>
+    </div>
+
+    <h3>ストリーミング応答の UI 実装</h3>
+    <p>Sarashina3-mini のチャット応答はストリーミングを前提とした設計が推奨されます。文字が逐次表示されることで「思考中」ではなく「話している」感覚を演出できます。</p>
+
+    <div class="code-block">
+      <div class="code-label">React</div>
+      <pre><code>function ChatStream() {
+  const [messages, setMessages] = useState&lt;ChatMessage[]&gt;([]);
+  const [input, setInput] = useState("");
+
+  const handleSend = async () =&gt; {
+    const userMsg: ChatMessage = { role: "user", content: input, status: "done" };
+    setMessages(prev =&gt; [...prev, userMsg]);
+
+    const assistantMsg: ChatMessage = { role: "assistant", content: "", status: "streaming" };
+    setMessages(prev =&gt; [...prev, assistantMsg]);
+
+    const res = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: input, history: messages }),
+    });
+
+    const reader = res.body?.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (reader) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE形式のchunkをパースしてUI更新
+      updateLastMessage(buffer);
+    }
+  };
+
+  return (
+    &lt;div className="chat-container"&gt;
+      {messages.map((m, i) =&gt; (
+        &lt;Bubble key={i} role={m.role} status={m.status}&gt;
+          {m.content}
+          {m.status === "streaming" &amp;&amp; &lt;Cursor /&gt;}
+        &lt;/Bubble&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}</code></pre>
+    </div>
+
+    <h3>RAG パイプラインの UI 統合</h3>
+    <p>Embeddings + Rerank + Chat Completions を組み合わせた RAG は、現在最も実用的な企業導入パターンです。UI上では「根拠の提示」が信頼性を左右します。</p>
+
+    <div class="code-block">
+      <div class="code-label">TypeScript</div>
+      <pre><code>interface RAGResponse {
+  answer: string;
+  sources: {
+    title: string;
+    excerpt: string;
+    page?: number;
+    relevance: number; // rerankスコア
+  }[];
+}
+
+// UI上で回答と引用をセットで表示
+function RAGAnswer({ data }: { data: RAGResponse }) {
+  return (
+    &lt;div className="rag-answer"&gt;
+      &lt;article className="prose"&gt;{data.answer}&lt;/article&gt;
+      &lt;aside className="sources"&gt;
+        &lt;h5&gt;引用元&lt;/h5&gt;
+        &lt;ol&gt;
+          {data.sources.map((s, i) =&gt; (
+            &lt;li key={i}&gt;
+              &lt;span className="source-title"&gt;{s.title}&lt;/span&gt;
+              &lt;span className="source-excerpt"&gt;{s.excerpt}&lt;/span&gt;
+              &lt;RelevanceBar score={s.relevance} /&gt;
+            &lt;/li&gt;
+          ))}
+        &lt;/ol&gt;
+      &lt;/aside&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+    </div>
+
+    <h3>翻訳 UI のトーン制御</h3>
+    <p>Translate API は文脈を汲むため、ユーザーに「トーン」を選択させることで品質を向上させられます。</p>
+
+    <div class="code-block">
+      <div class="code-label">TypeScript</div>
+      <pre><code>type Tone = "business-formal" | "business-casual" | "technical" | "marketing";
+
+async function translate(text: string, tone: Tone, direction: "ja-en" | "en-ja") {
+  const res = await fetch("/api/translate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "sarashina3-translate",
+      text,
+      tone,
+      direction,
+    }),
+  });
+  return res.json();
+}
+
+// UI側ではセグメンテッドコントロールでトーンを選択
+// [ ビジネス正式 | ビジネスカジュアル | 技術 | マーケティング ]</code></pre>
+    </div>
+  </section>
+
+  <section id="security">
+    <div class="section-header">
+      <span class="section-num">06</span>
+      <h2 class="section-title">セキュリティ・プライバシー・運用設計</h2>
+    </div>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h4>API Key の管理</h4>
+        <p class="text-small">
+          API Key はブラウザに露出させず、必ずサーバサイド（API Route / BFF）で管理します。Vercel の Environment Variables や AWS Secrets Manager などを利用し、クライアントからは間接的にのみアクセスさせます。
+        </p>
+      </div>
+      <div class="card">
+        <h4>Guard の多層防御</h4>
+        <p class="text-small">
+          入力時と出力時の両方で Guard を適用します。入力Guardで不適切なプロンプトを事前に防ぎ、出力Guardで生成物の安全性を最終確認します。UI上では「修正提案」として回復フローを設計します。
+        </p>
+      </div>
+      <div class="card">
+        <h4>ログと監査</h4>
+        <p class="text-small">
+          法人利用では、誰がいつどのモデルを使用したかの監査ログが必要です。ユーザーID、セッションID、モデルID、トークン数、応答時間を構造化ログとして蓄積し、ダッシュボードで可視化します。
+        </p>
+      </div>
+      <div class="card">
+        <h4>データ主権の設計</h4>
+        <p class="text-small">
+          Sarashina は国内データセンターで運用されます。機密文書を Embedding する際は、ベクトルDBも国内リージョンに配置し、クロスボーダー通信を排除したアーキテクチャを文書化します。
+        </p>
+      </div>
+    </div>
+
+    <h3 class="mt-3">レート制限とフォールバック</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>状況</th>
+          <th>UI挙動</th>
+          <th>技術的対応</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>429 Too Many Requests</td>
+          <td>「混雑しています。自動的に再試行します」</td>
+          <td>Exponential Backoff + Queue</td>
+        </tr>
+        <tr>
+          <td>タイムアウト</td>
+          <td>「応答に時間がかかっています。短くまとめて再送信」</td>
+          <td>max_tokens縮小、要約モード自動切替</td>
+        </tr>
+        <tr>
+          <td>Guardブロック</td>
+          <td>「別の表現を試してください」+ 例示</td>
+          <td>Guard結果に基づく再プロンプト生成</td>
+        </tr>
+        <tr>
+          <td>長文生成</td>
+          <td>進捗パーセント + 生成セクション別表示</td>
+          <td>Chunked generation + SSE</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="design-system">
+    <div class="section-header">
+      <span class="section-num">07</span>
+      <h2 class="section-title">デザインシステムとコンポーネントト</h2>
+    </div>
+
+    <p>Sarashina API を利用するアプリケーションに共通して求められる UI コンポーネント群を定義します。これらは業種を問わず再利用可能なパターンです。</p>
+
+    <h3>共通コンポーネント一覧</h3>
+    <div class="grid grid-3">
+      <div class="card">
+        <h4>SmartInput</h4>
+        <p class="text-small">プレースホルダーが入力例を循環表示。箇条書き入力を自動で整形。文字数カウントとトークン予測を併記。</p>
+      </div>
+      <div class="card">
+        <h4>StreamingBubble</h4>
+        <p class="text-small">吹き出し内で文字が逐次出現。コードブロックはシンタックスハイライト。生成中は脈動アニメーション。</p>
+      </div>
+      <div class="card">
+        <h4>SourceCitation</h4>
+        <p class="text-small">引用元文書のタイトル、該当箇所、関連度バーをセットで表示。クリックで原文へスクロール。</p>
+      </div>
+      <div class="card">
+        <h4>ToneSelector</h4>
+        <p class="text-small">翻訳・生成のトーンをアイコン付きセグメントで選択。ホバーで各トーンの説明ツールチップ。</p>
+      </div>
+      <div class="card">
+        <h4>GuardNotice</h4>
+        <p class="text-small">穏やかな色調で理由を説明。修正提案ボタンを主要アクションとして配置。過剰な警告色を避ける。</p>
+      </div>
+      <div class="card">
+        <h4>TokenEstimator</h4>
+        <p class="text-small">入力テキストに対するトークン数と料金のリアルタイム推定。予算上限に近づくと穏やかに警告。</p>
+      </div>
+    </div>
+
+    <h3 class="mt-3">推奨デザイントークン（和風モダン）</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>トークン</th>
+          <th>値</th>
+          <th>用途</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>color.bg</code></td>
+          <td><code>#f7f5f0</code></td>
+          <td>ページ背景（生成り色）</td>
+        </tr>
+        <tr>
+          <td><code>color.surface</code></td>
+          <td><code>#fffefb</code></td>
+          <td>カード、入力欄背景</td>
+        </tr>
+        <tr>
+          <td><code>color.ink</code></td>
+          <td><code>#1a1a1a</code></td>
+          <td>主要テキスト（墨黒）</td>
+        </tr>
+        <tr>
+          <td><code>color.accent</code></td>
+          <td><code>#2e5c8a</code></td>
+          <td>プライマリアクション、リンク（藍色）</td>
+        </tr>
+        <tr>
+          <td><code>color.muted</code></td>
+          <td><code>#5c5c5c</code></td>
+          <td>補足テキスト、ラベル</td>
+        </tr>
+        <tr>
+          <td><code>font.heading</code></td>
+          <td>Noto Serif JP</td>
+          <td>見出し、タイトル（和の品格）</td>
+        </tr>
+        <tr>
+          <td><code>font.body</code></td>
+          <td>Noto Sans JP</td>
+          <td>本文、UIラベル（可読性）</td>
+        </tr>
+        <tr>
+          <td><code>radius.card</code></td>
+          <td><code>10px</code></td>
+          <td>角丸（過度に丸くしない）</td>
+        </tr>
+        <tr>
+          <td><code>shadow.card</code></td>
+          <td>多層シャドウ</td>
+          <td>浮遊感を抑えた落ち着いた陰影</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="workflow">
+    <div class="section-header">
+      <span class="section-num">08</span>
+      <h2 class="section-title">導入ワークフロー</h2>
+    </div>
+
+    <div class="process-step">
+      <span class="process-num">1</span>
+      <div class="process-body">
+        <h4>要件定義とモデル選定</h4>
+        <p class="text-small">対話中心なら mini、大量バッチなら nano、RAGなら embedding + rerank の組み合わせを選定。Guard が必要な公開サービスか、社内閉域かを判断します。</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <span class="process-num">2</span>
+      <div class="process-body">
+        <h4>プロトタイプ（Playground → UI）</h4>
+        <p class="text-small">Sarashina サービスの Playground でプロンプトを検証し、期待する出力トーン・長さ・構造を確定させてから UI に落とし込みます。</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <span class="process-num">3</span>
+      <div class="process-body">
+        <h4>コンポーネント実装</h4>
+        <p class="text-small">SmartInput、StreamingBubble、SourceCitation など共通コンポーネントを先に実装し、各画面で再利用します。Storybook 等で状態パターンを網羅的に確認します。</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <span class="process-num">4</span>
+      <div class="process-body">
+        <h4>統合テストと Guard 調整</h4>
+        <p class="text-small">実際の業務データで Embeddings の精度、Rerank の並び順、Guard の誤検出率を測定。しきい値や指示文をチューニングします。</p>
+      </div>
+    </div>
+
+    <div class="process-step">
+      <span class="process-num">5</span>
+      <div class="process-body">
+        <h4>本番運用と継続的改善</h4>
+        <p class="text-small">ユーザー評価（👍/👎）と Guard ログを収集し、プロンプトや Rerank 指示を継続的に改善。A/Bテストでモデル切り替えの効果を検証します。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="summary">
+    <div class="section-header">
+      <span class="section-num">09</span>
+      <h2 class="section-title">まとめ</h2>
+    </div>
+    <p>
+      Sarashina API を活用した UX/UI 設計の本質は、「日本語の豊かさを技術で支える」ことにあります。単なる機能実装ではなく、日本語特有の婉曲表現・敬語・文脈推論を、ユーザーが自然に使いこなせるインターフェースに翻訳することが求められます。
+    </p>
+    <p>
+      各エンドポイントの特性を理解し、Chat Completions ではストリーミングとトーン制御を、Embeddings/Rerank では根拠の可視化を、Translate では文脈を汲んだ対訳エディタを、Guard では穏やかな回復体験を設計することで、国産LLMならではの信頼性と使いやすさを両立できます。
+    </p>
+    <div class="callout">
+      <strong>次のステップ:</strong> 本ガイドに基づき、まずは Playground でプロンプトを検証し、最小限のチャットUIプロトタイプを構築してください。その後、RAGや翻訳などのユースケースに応じてコンポーネントを拡張していくことを推奨します。
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="container">
+    <p>Sarashina API UX/UI 設計・実装ガイド &middot; 2026年10月版</p>
+    <p class="text-small text-muted">本資料は公開情報に基づく設計ガイドラインです。最新のAPI仕様は docs.sarashina.ai を参照してください。</p>
+  </div>
+</footer>
+
+</body>
+</html>
