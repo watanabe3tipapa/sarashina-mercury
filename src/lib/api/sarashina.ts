@@ -1,4 +1,8 @@
-const SARASHINA_API_BASE = "https://api.sarashina.ai/v1"
+const SARASHINA_API_BASE =
+  import.meta.env.VITE_SARASHINA_API_BASE ??
+  (import.meta.env.DEV
+    ? "/proxy/sarashina/v1"
+    : "https://api.sarashina.ai/v1")
 
 export interface ChatMessage {
   role: "system" | "user" | "assistant"
@@ -10,26 +14,77 @@ export interface ChatCompletionRequest {
   messages: ChatMessage[]
   stream?: boolean
   temperature?: number
-  max_tokens?: number
+  max_completion_tokens?: number
+}
+
+export type EmbeddingTaskType =
+  | "RETRIEVAL_DOCUMENT"
+  | "SEMANTIC_SIMILARITY"
+  | "RETRIEVAL_QUERY"
+  | "QUESTION_ANSWERING"
+  | "FACT_VERIFICATION"
+  | "CLASSIFICATION"
+  | "CLUSTERING"
+
+export type RerankTaskType =
+  | "GENERAL_RETRIEVAL"
+  | "GENERAL_QA"
+  | "NEWS_RETRIEVAL"
+  | "SEMANTIC_SIMILARITY"
+  | "CUSTOMIZE"
+
+export interface EmbeddingResponse {
+  data: { object: string; index: number; embedding: number[] }[]
+  usage: { prompt_tokens: number; total_tokens: number }
+}
+
+export interface RerankResponse {
+  data: { object: string; index: number; result: { document_id: number; score: number }[] }[]
+  usage: { prompt_tokens: number; total_tokens: number; completion_tokens: number }
+}
+
+export interface GuardResult {
+  safe: boolean
+  categories: string[]
+  raw: string
+}
+
+// 403: the Worker may have executed outside Japan (API is geo-restricted).
+// 429: rate limit. Retrying re-rolls the Cloudflare edge placement.
+const RETRY_STATUSES = new Set([403, 429])
+const MAX_RETRIES = 3
+
+async function postJSON(
+  path: string,
+  apiKey: string,
+  body: unknown
+): Promise<Response> {
+  let last: Response | undefined
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const res = await fetch(`${SARASHINA_API_BASE}${path}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(body),
+    })
+    if (res.ok) return res
+    last = res
+    if (!RETRY_STATUSES.has(res.status) || attempt === MAX_RETRIES) break
+    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+  }
+  throw new Error(await last!.text())
 }
 
 export async function* streamChat(
   apiKey: string,
   request: ChatCompletionRequest
 ): AsyncGenerator<{ content: string }> {
-  const res = await fetch(`${SARASHINA_API_BASE}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({ ...request, stream: true }),
+  const res = await postJSON("/chat/completions", apiKey, {
+    ...request,
+    stream: true,
   })
-
-  if (!res.ok) {
-    const error = await res.text()
-    throw new Error(error)
-  }
 
   const reader = res.body?.getReader()
   if (!reader) throw new Error("No stream")
@@ -56,7 +111,7 @@ export async function* streamChat(
           if (content) {
             yield { content }
           }
-        } catch (e) {
+        } catch {
           // ignore parse errors
         }
       }
@@ -71,72 +126,58 @@ export async function translate(
     direction: "ja-en" | "en-ja"
     tone?: string
   }
-) {
-  const res = await fetch(`${SARASHINA_API_BASE}/translations`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "sarashina3-translate",
-      text: params.text,
-      direction: params.direction,
-      tone: params.tone || "business-casual",
-    }),
+): Promise<{ translated_text: string }> {
+  const [source_lang, target_lang] =
+    params.direction === "ja-en" ? ["ja", "en"] : ["en", "ja"]
+
+  const res = await postJSON("/translate", apiKey, {
+    text: params.text,
+    source_lang,
+    target_lang,
+    tone: params.tone || "business-casual",
   })
-  if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
-export async function embedText(apiKey: string, text: string) {
-  const res = await fetch(`${SARASHINA_API_BASE}/embeddings`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "sarashina3-embedding",
-      input: text,
-    }),
+export async function embedText(
+  apiKey: string,
+  text: string,
+  taskType: EmbeddingTaskType = "RETRIEVAL_QUERY"
+): Promise<EmbeddingResponse> {
+  const res = await postJSON("/embeddings", apiKey, {
+    model: "sarashina3-embedding",
+    input: text,
+    task_type: taskType,
   })
-  if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
 export async function rerank(
   apiKey: string,
-  params: { query: string; documents: string[] }
-) {
-  const res = await fetch(`${SARASHINA_API_BASE}/rerank`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "sarashina3-rerank",
-      query: params.query,
-      documents: params.documents,
-    }),
+  params: { query: string; documents: string[]; taskType?: RerankTaskType }
+): Promise<RerankResponse> {
+  const res = await postJSON("/rerank", apiKey, {
+    model: "sarashina3-rerank",
+    query: params.query,
+    documents: params.documents,
+    task_type: params.taskType ?? "GENERAL_RETRIEVAL",
   })
-  if (!res.ok) throw new Error(await res.text())
   return res.json()
 }
 
-export async function guard(apiKey: string, text: string) {
-  const res = await fetch(`${SARASHINA_API_BASE}/guard`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      text,
-      model: "sarashina3-guard",
-    }),
+export async function guard(apiKey: string, text: string): Promise<GuardResult> {
+  const res = await postJSON("/chat/completions", apiKey, {
+    model: "sarashina3-guard",
+    messages: [{ role: "user", content: text }],
   })
-  if (!res.ok) throw new Error(await res.text())
-  return res.json()
+  const data = await res.json()
+  const raw: string = data.choices?.[0]?.message?.content ?? ""
+  const [verdict, categoryList] = raw.split("\n")
+  return {
+    safe: verdict?.trim() === "安全",
+    categories: categoryList
+      ? categoryList.split(",").map((c) => c.trim()).filter(Boolean)
+      : [],
+    raw,
+  }
 }

@@ -36,5 +36,14 @@ export default defineConfig({
     alias: {
       "@": "/src"
     }
+  },
+  server: {
+    proxy: {
+      "/proxy/sarashina": {
+        target: "https://api.sarashina.ai",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/proxy\/sarashina/, "")
+      }
+    }
   }
 })

@@ -26,13 +26,13 @@ Mercury Editorを参考にした、Sarashina AI専用のPWAツール。
 - [ ] APIキー設定画面（ローカル保存）
 - [ ] チャット画面（sarashina3-mini/nano）
 - [ ] ストリーミング応答
-- [ ] 会話履歴
-- [ ] システムプロンプト設定
+- [x] 会話履歴
+- [x] システムプロンプト設定
 
 ## v1.1（ガイド準拠）
 - [ ] トーン制御（翻訳時）
 - [ ] Guard警告UI
-- [ ] RAG（Embeddings + Rerank + 根拠表示）
+- [x] RAG（Rerank + Chat + 根拠表示）
 - [ ] 翻訳エディタ
 - [ ] サイドバーUI（チャット・ツール切替）
 

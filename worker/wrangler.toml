@@ -1,0 +1,14 @@
+name = "sarashina-proxy"
+main = "src/index.ts"
+compatibility_date = "2026-01-01"
+
+# Run the Worker near the Sarashina API origin (Tokyo) to satisfy its
+# region restriction. Best-effort optimization.
+[placement]
+mode = "smart"
+
+
+# Restrict to your PWA origin in production, e.g. "https://your-app.pages.dev".
+# "*" allows any origin (API key is still supplied per-request by the browser).
+[vars]
+ALLOWED_ORIGIN = "*"

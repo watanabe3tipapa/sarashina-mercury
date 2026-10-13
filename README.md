@@ -126,11 +126,18 @@ src/
 │   ├── settings/SettingsPage.tsx # API キー / モデル設定
 │   └── tools/
 │       ├── TranslatePage.tsx    # 翻訳（トーン制御）
-│       ├── RAGPage.tsx          # Embeddings + Rerank
+│       ├── RAGPage.tsx          # Rerank + Chat（引用元付き回答）
 │       └── GuardPage.tsx        # 安全性判定
+├── components/SourceCitation.tsx # 引用元カード（関連度バー・スクロール）
 ├── lib/api/sarashina.ts        # Sarashina API クライアント
 ├── store/useSettingsStore.ts   # 設定の永続化（zustand）
+├── store/useChatStore.ts       # 会話一覧の状態管理（zustand）
+├── lib/db/conversations.ts     # 会話履歴の永続化（IndexedDB）
 └── lib/utils.ts                # クラス名ユーティリティ（cn）
+
+worker/                         # CORS 回避用 Cloudflare Worker プロキシ
+├── src/index.ts                # リクエスト中継 + CORS ヘッダー付与
+└── wrangler.toml               # Worker 設定
 ```
 
 ## セキュリティ
@@ -138,6 +145,42 @@ src/
 - API キーは `localStorage` に保存され、Sarashina API 以外へ送信されません
 - サーバーを介さずブラウザから API を直接呼び出します（API 側の CORS 設定に依存）
 - 公開端末での利用は避け、必要に応じてキーのローテーションを行ってください
+
+## CORS とプロキシ（Cloudflare Worker）
+
+Sarashina API は CORS ヘッダーを返さないため、ブラウザから直接呼び出すと応答がブロックされます。本リポジトリには、リクエストを中継するだけの薄いプロキシ（`worker/`）が含まれています。API キーはブラウザに保存され、リクエストごとに `Authorization` ヘッダーでプロキシを素通しします（プロキシはキーを保存しません）。
+
+```bash
+cd worker
+pnpm install
+pnpm dev      # ローカルでプロキシを起動
+pnpm deploy   # Cloudflare にデプロイ
+```
+
+デプロイ後、発行された Worker の URL をアプリのビルド時に指定します。
+
+```bash
+# .env
+VITE_SARASHINA_API_BASE=https://sarashina-proxy.<your-subdomain>.workers.dev/v1
+```
+
+- `pnpm dev`（アプリ）では Vite の開発プロキシが自動で使われるため、Worker は不要です。
+- 本番ビルドでは `VITE_SARASHINA_API_BASE` を必ず設定してください（未設定時は Sarashina API を直接参照し、CORS で失敗します）。
+- 公開時は `worker/wrangler.toml` の `ALLOWED_ORIGIN` をアプリのオリジンに限定することを推奨します。
+
+### 既知の制約: API は日本国内からのアクセスに限定
+
+Sarashina API は AWS WAF により、**日本国外のリージョンからのリクエストを `403 Forbidden` で拒否**します（検証済み: 東京 NRT/KIX のエッジは `401`＝認証到達、US/AU などのエッジは上流の `403`）。
+
+Cloudflare Worker はエッジの実行リージョンにより日本国外で実行されることがあるため、その場合は `403` になります。現状の緩和策:
+
+- `worker/wrangler.toml` の **Smart Placement**（`[placement] mode = "smart"`）でオリジン（日本）付近での実行を促しています。
+- アプリ側（`src/lib/api/sarashina.ts`）で `403` / `429` を検知したら最大 3 回リトライし、エッジの実行リージョンを引き直します。
+
+> **注意**: `*.workers.dev` は国内クライアントでも日本国外のエッジに着地することがあり、Smart Placement も best-effort のため成功率は保証されません。より確実にするには以下を検討してください。
+>
+> - **カスタムドメイン**を Cloudflare に接続（国内ユーザーが NRT/KIX に着地しやすくなる）
+> - 日本リージョンに固定したプロキシ（Google Cloud Run `asia-northeast1`、AWS Lambda `ap-northeast-1`）
 
 ## ロードマップ
 
@@ -147,9 +190,9 @@ src/
 - [x] 翻訳（トーン制御）
 - [x] RAG（Embeddings + Rerank）
 - [x] Guard（安全性判定）
-- [ ] 会話履歴の永続化（IndexedDB）
-- [ ] システムプロンプト設定
-- [ ] 引用元表示（SourceCitation）・根拠へのスクロール
+- [x] 会話履歴の永続化（IndexedDB）
+- [x] システムプロンプト設定
+- [x] 引用元表示（SourceCitation）・根拠へのスクロール
 - [ ] トークン / 料金のリアルタイム推定
 
 ## ドキュメント
