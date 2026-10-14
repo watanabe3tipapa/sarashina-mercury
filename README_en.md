@@ -234,16 +234,10 @@ worker/                            # Cloudflare Worker proxy for CORS
 - [x] Citation display (SourceCitation) and scroll to sources
 - [x] Landing page and GitHub Pages deployment
 
-### v1.1 and later
-
-- [ ] Guard warning UI (a stronger recovery path)
-- [ ] Translation editor (a lexical-based editing experience)
-- [ ] Real-time token / cost estimation
-
 ## Documentation
 
 1. [UX/UI guide](./sarashina_api_uxui_guide.html) — model selection, UI patterns per endpoint, design tokens, and an adoption workflow
-2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — the MVP and v1.1 plan
+2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — the MVP plan
 3. [Live site](https://watanabe3tipapa.github.io/sarashina-mercury/) — landing page and app
 
 ## Contributing

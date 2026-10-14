@@ -234,16 +234,10 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 - [x] 引用元表示（SourceCitation）・根拠へのスクロール
 - [x] ランディングページと GitHub Pages デプロイ
 
-### v1.1 以降
-
-- [ ] Guard 警告 UI（回復導線の強化）
-- [ ] 翻訳エディタ（lexical ベースの編集体験）
-- [ ] トークン / 料金のリアルタイム推定
-
 ## ドキュメント
 
 1. [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) — モデル選定、エンドポイント別 UI パターン、デザイントークン、導入ワークフロー
-2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — MVP と v1.1 の実装計画
+2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — MVP の実装計画
 3. [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) — ランディングページとアプリ
 
 ## コントリビューション
