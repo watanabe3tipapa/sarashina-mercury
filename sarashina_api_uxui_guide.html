@@ -410,6 +410,14 @@ async function semanticSearch(query: string) {
           <li>誤検出のフィードバック送信機能</li>
         </ul>
       </div>
+      <div class="card">
+        <h4>入出力の自動チェック</h4>
+        <ul class="clean text-small">
+          <li>送信前に入力を判定し、問題があれば送信前に確認を促す</li>
+          <li>応答後に出力を判定し、結果を控えめに提示する</li>
+          <li>自動チェックは任意（既定オフ）。API 呼び出しと待ち時間が増える点を明示する</li>
+        </ul>
+      </div>
     </div>
   </section>
 
@@ -556,6 +564,14 @@ async function semanticSearch(query: string) {
   );
 }</code></pre>
     </div>
+
+    <h3>生成の中断（停止ボタン）</h3>
+    <p>ストリーミング中は常に「停止」を提供します。長い生成や誤った入力を途中で止められることは、待機の不安を減らし、無駄なトークン消費も防ぎます。</p>
+    <ul class="clean text-small">
+      <li><code>AbortController</code> を作り、<code>fetch</code> と読み取りループの両方に <code>signal</code> を渡す</li>
+      <li>中断はエラー扱いにせず、そこまでの出力を残して静かに終了する（空なら「停止しました」と明示）</li>
+      <li>チャット・翻訳・RAG で一貫した停止体験を提供する</li>
+    </ul>
 
     <h3>RAG パイプラインの UI 統合</h3>
     <p>Embeddings + Rerank + Chat Completions を組み合わせた RAG は、現在最も実用的な企業導入パターンです。UI上では「根拠の提示」が信頼性を左右します。</p>
@@ -705,7 +721,7 @@ async function translate(text: string, tone: Tone, direction: "ja-en" | "en-ja")
       </div>
       <div class="card">
         <h4>StreamingBubble</h4>
-        <p class="text-small">吹き出し内で文字が逐次出現。コードブロックはシンタックスハイライト。生成中は脈動アニメーション。</p>
+        <p class="text-small">吹き出し内で文字が逐次出現。コードブロックはシンタックスハイライト。生成中は脈動アニメーション。生成中は「停止」ボタンで中断できる。</p>
       </div>
       <div class="card">
         <h4>SourceCitation</h4>
@@ -717,7 +733,7 @@ async function translate(text: string, tone: Tone, direction: "ja-en" | "en-ja")
       </div>
       <div class="card">
         <h4>GuardNotice</h4>
-        <p class="text-small">穏やかな色調で理由を説明。修正提案ボタンを主要アクションとして配置。過剰な警告色を避ける。</p>
+        <p class="text-small">穏やかな色調で理由を説明。修正提案（別の表現・再判定・このまま送信）ボタンを用意し、過剰な警告色を避ける。入出力の自動チェックにも対応。</p>
       </div>
       <div class="card">
         <h4>TokenEstimator</h4>
