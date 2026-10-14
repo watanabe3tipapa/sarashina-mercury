@@ -78,7 +78,7 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 
 | Tool | Required version | Check command |
 |---|---:|---|
-| Node.js | >= 20 | `node --version` |
+| Node.js | >= 22 | `node --version` |
 | pnpm (recommended) | >= 9 | `pnpm --version` |
 
 Get a Sarashina API key from [SB Intuitions / Sarashina](https://www.sbintuitions.co.jp/).

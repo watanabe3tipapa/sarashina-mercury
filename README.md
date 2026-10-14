@@ -78,7 +78,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 
 | ツール | 必要バージョン | 確認コマンド |
 |---|---:|---|
-| Node.js | >= 20 | `node --version` |
+| Node.js | >= 22 | `node --version` |
 | pnpm（推奨） | >= 9 | `pnpm --version` |
 
 Sarashina API キーは [SB Intuitions / Sarashina](https://www.sbintuitions.co.jp/) より取得してください。
