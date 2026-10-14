@@ -5,9 +5,11 @@ import TranslatePage from "./features/tools/TranslatePage"
 import RAGPage from "./features/tools/RAGPage"
 import GuardPage from "./features/tools/GuardPage"
 
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/"
+
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={basename}>
       <Routes>
         <Route path="/" element={<ChatPage />} />
         <Route path="/settings" element={<SettingsPage />} />

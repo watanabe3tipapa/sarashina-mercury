@@ -1,10 +1,17 @@
-name: Deploy landing page to GitHub Pages
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: [main]
     paths:
       - "docs/**"
+      - "src/**"
+      - "public/**"
+      - "scripts/**"
+      - "index.html"
+      - "vite.config.ts"
+      - "package.json"
+      - "pnpm-lock.yaml"
       - "sarashina_api_uxui_guide.html"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
@@ -21,15 +28,38 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BASE_PATH: /sarashina-mercury/app/
+      APP_BASE: /sarashina-mercury/app/
+      SITE_BASE: /sarashina-mercury/
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build app
+        run: pnpm build
 
       - name: Assemble site
         run: |
           mkdir -p _site
           cp -R docs/. _site/
+          cp -R dist _site/app
           cp sarashina_api_uxui_guide.html _site/guide.html
+          node scripts/build-404.mjs _site/app/index.html _site/404.html
           touch _site/.nojekyll
 
       - name: Setup Pages

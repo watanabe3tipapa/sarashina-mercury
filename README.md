@@ -4,14 +4,14 @@
 
 sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarashina」をブラウザから直接利用できる PWA です。ユーザー自身の Sarashina API キーをローカル（ブラウザ）に保存し、チャット・翻訳・RAG・Guard の各機能を、オフラインでもインストール可能な単一アプリとして提供します。編集体験は Mercury Editor を参考にしています。
 
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![PWA](https://img.shields.io/badge/PWA-ready-5A0FC8?logo=pwa&logoColor=white)](https://web.dev/progressive-web-apps/)
-[![GitHub issues](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
+[![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
-**クイックリンク:** [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) · [実装計画](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
+[日本語](README.md) | [English](README_en.md)
+
+**クイックリンク:** [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) · [アプリを開く](https://watanabe3tipapa.github.io/sarashina-mercury/app/) · [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) · [実装計画](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
 ## コンセプト
 
@@ -20,7 +20,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 Sarashina API は「日本語らしさ」を体現するモデルです。婉曲表現・省略・文脈推論といった日本語の豊かさを、単なる機能の羅列ではなく編集体験として昇華させる――その手本とするのが Mercury Editor です。sarashina-mercury は、API キーをサーバーに預けず、ブラウザと Sarashina API だけを直接つなぐことで、データ主権を保ったまま快適な PWA を目指します。
 
 | 営み | sarashina-mercury の対応物 |
-| --- | --- |
+|---|---|
 | 対話する | `sarashina3-mini` / `sarashina3-nano` によるストリーミングチャット |
 | 翻訳する | `sarashina3-translate` によるトーン指定翻訳 |
 | 根拠を探す | `sarashina3-embedding` + `sarashina3-rerank` による RAG |
@@ -31,7 +31,7 @@ Sarashina API は「日本語らしさ」を体現するモデルです。婉曲
 ### 対応モデル
 
 | モデル ID | コンテキスト | 主な用途 | API カテゴリ |
-| --- | --- | --- | --- |
+|---|---|---|---|
 | `sarashina3-mini` | 128k tokens | 標準対話、Tool-calling、数学・コーディング | Chat Completions |
 | `sarashina3-nano` | 128k tokens | 高速バッチ処理（抽出・要約・分類） | Chat Completions |
 | `sarashina3-guard` | 64k tokens | 入出力の安全性判定・モデレーション | Chat Completions |
@@ -61,15 +61,21 @@ Sarashina API は「日本語らしさ」を体現するモデルです。婉曲
 - Vite + React + TypeScript の SPA
 - Tailwind CSS v4 によるスタイリング
 - `react-router-dom` によるページルーティング
-- `zustand` + `persist` による設定の永続化
+- `zustand` + `persist` による設定の永続化、IndexedDB による会話履歴
 - Sarashina API への直接呼び出し（SSE ストリーミング対応）
+
+### PWA / オフライン
+
+- `vite-plugin-pwa`（Workbox, `generateSW`）でアプリシェルをプリキャッシュ
+- マニフェストは日本語（`lang: "ja"`）で、通常アイコンと maskable アイコンを同梱
+- ホーム画面に追加するとスタンドアロンのアプリとして起動
 
 ## インストールとビルド
 
 ### 前提条件
 
 | ツール | 必要バージョン | 確認コマンド |
-| --- | --- | --- |
+|---|---:|---|
 | Node.js | >= 20 | `node --version` |
 | pnpm（推奨） | >= 9 | `pnpm --version` |
 
@@ -79,66 +85,55 @@ Sarashina API キーは [SB Intuitions / Sarashina](https://www.sbintuitions.co.
 
 1. リポジトリを取得
 
-   ```bash
-   git clone https://github.com/watanabe3tipapa/sarashina-mercury.git
-   cd sarashina-mercury
-   ```
+```bash
+git clone https://github.com/watanabe3tipapa/sarashina-mercury.git
+cd sarashina-mercury
+```
 
 2. 依存をインストール
 
-   ```bash
-   pnpm install
-   ```
+```bash
+pnpm install
+```
 
 3. 開発サーバーを起動
 
-   ```bash
-   pnpm dev
-   ```
+```bash
+pnpm dev
+```
 
-   起動後、アプリの「設定」から API キーを登録すると各機能が利用できます。
+起動後、アプリの「設定」から API キーを登録すると各機能が利用できます。
 
 4. 本番ビルド
 
-   ```bash
-   pnpm build
-   ```
+```bash
+pnpm build
+```
 
-   ビルド結果は `dist/` に出力されます。プレビューは `pnpm preview` で確認できます。
+ビルド結果は `dist/` に出力されます。プレビューは `pnpm preview` で確認できます。
 
 ### 主要コマンド
 
 | コマンド | 用途 |
-| --- | --- |
+|---|---|
 | `pnpm dev` | 開発サーバーを起動（HMR） |
 | `pnpm build` | 型チェック（`tsc -b`）＋ 本番ビルド |
 | `pnpm preview` | ビルド成果物をローカルでプレビュー |
 | `pnpm lint` | oxlint による静的解析 |
 
-## ディレクトリ構成
+### 公開
 
-```text
-src/
-├── App.tsx                     # ルーティング定義
-├── main.tsx                    # エントリポイント
-├── features/
-│   ├── chat/ChatPage.tsx        # チャット（ストリーミング）
-│   ├── settings/SettingsPage.tsx # API キー / モデル設定
-│   └── tools/
-│       ├── TranslatePage.tsx    # 翻訳（トーン制御）
-│       ├── RAGPage.tsx          # Rerank + Chat（引用元付き回答）
-│       └── GuardPage.tsx        # 安全性判定
-├── components/SourceCitation.tsx # 引用元カード（関連度バー・スクロール）
-├── lib/api/sarashina.ts        # Sarashina API クライアント
-├── store/useSettingsStore.ts   # 設定の永続化（zustand）
-├── store/useChatStore.ts       # 会話一覧の状態管理（zustand）
-├── lib/db/conversations.ts     # 会話履歴の永続化（IndexedDB）
-└── lib/utils.ts                # クラス名ユーティリティ（cn）
+`main` ブランチへの push を契機に [GitHub Actions](./.github/workflows/deploy-pages.yml) がビルド・デプロイを行い、LP とアプリを GitHub Pages で公開します。
 
-worker/                         # CORS 回避用 Cloudflare Worker プロキシ
-├── src/index.ts                # リクエスト中継 + CORS ヘッダー付与
-└── wrangler.toml               # Worker 設定
-```
+| パス | 内容 |
+|---|---|
+| `/` | ランディングページ（`docs/`） |
+| `/app/` | アプリ本体（Vite ビルド成果物） |
+| `/guide.html` | UX/UI 設計ガイド |
+
+- アプリはサブパス配信のため、ビルド時に `BASE_PATH=/sarashina-mercury/app/` を指定します（Vite の `base` に反映）。
+- ルーティングは `import.meta.env.BASE_URL` を `basename` に使い、`404.html` で SPA の直リンクをフォールバックします。
+- ルート以外で配信する場合は `BASE_PATH` を変更してください。
 
 ## セキュリティ
 
@@ -182,7 +177,40 @@ Cloudflare Worker はエッジの実行リージョンにより日本国外で�
 > - **カスタムドメイン**を Cloudflare に接続（国内ユーザーが NRT/KIX に着地しやすくなる）
 > - 日本リージョンに固定したプロキシ（Google Cloud Run `asia-northeast1`、AWS Lambda `ap-northeast-1`）
 
+## ディレクトリ構成
+
+```text
+src/
+├── App.tsx                       # ルーティング定義
+├── main.tsx                      # エントリポイント
+├── features/
+│   ├── chat/ChatPage.tsx          # チャット（ストリーミング）
+│   ├── settings/SettingsPage.tsx  # API キー / モデル設定
+│   └── tools/
+│       ├── TranslatePage.tsx      # 翻訳（トーン制御）
+│       ├── RAGPage.tsx            # Rerank + Chat（引用元付き回答）
+│       └── GuardPage.tsx          # 安全性判定
+├── components/SourceCitation.tsx  # 引用元カード（関連度バー・スクロール）
+├── lib/
+│   ├── api/sarashina.ts           # Sarashina API クライアント
+│   ├── db/conversations.ts        # 会話履歴の永続化（IndexedDB）
+│   ├── tokens.ts                  # トークン推定
+│   └── utils.ts                   # クラス名ユーティリティ（cn）
+└── store/
+    ├── useChatStore.ts            # 会話一覧の状態管理（zustand）
+    └── useSettingsStore.ts        # 設定の永続化（zustand）
+
+docs/                              # ランディングページ（GitHub Pages の root）
+public/                            # アイコン・manifest 用アセット
+scripts/build-404.mjs              # SPA 用 404.html の生成
+worker/                            # CORS 回避用 Cloudflare Worker プロキシ
+├── src/index.ts                   # リクエスト中継 + CORS ヘッダー付与
+└── wrangler.toml                  # Worker 設定
+```
+
 ## ロードマップ
+
+### v0.1.0（現在）
 
 - [x] Vite + PWA セットアップ
 - [x] API キー設定画面（ローカル保存）
@@ -193,12 +221,19 @@ Cloudflare Worker はエッジの実行リージョンにより日本国外で�
 - [x] 会話履歴の永続化（IndexedDB）
 - [x] システムプロンプト設定
 - [x] 引用元表示（SourceCitation）・根拠へのスクロール
+- [x] ランディングページと GitHub Pages デプロイ
+
+### v1.1 以降
+
+- [ ] Guard 警告 UI（回復導線の強化）
+- [ ] 翻訳エディタ（lexical ベースの編集体験）
 - [ ] トークン / 料金のリアルタイム推定
 
 ## ドキュメント
 
-- [Sarashina API を活用した UX/UI 設計・実装手法](./sarashina_api_uxui_guide.html) — モデル選定、エンドポイント別 UI パターン、デザイントークン、導入ワークフロー
-- [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — MVP と v1.1 の実装計画
+1. [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) — モデル選定、エンドポイント別 UI パターン、デザイントークン、導入ワークフロー
+2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — MVP と v1.1 の実装計画
+3. [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) — ランディングページとアプリ
 
 ## コントリビューション
 
@@ -211,9 +246,11 @@ Cloudflare Worker はエッジの実行リージョンにより日本国外で�
 
 ## 連絡先
 
-- GitHub: [https://github.com/watanabe3tipapa/sarashina-mercury](https://github.com/watanabe3tipapa/sarashina-mercury)
-- Issues: [https://github.com/watanabe3tipapa/sarashina-mercury/issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
+- GitHub: https://github.com/watanabe3tipapa/sarashina-mercury
+- 公開サイト: https://watanabe3tipapa.github.io/sarashina-mercury/
 
 ## ライセンス
 
-本リポジトリは現時点でライセンスを明示していません。ライセンスの追加を希望する場合は Issue にてご相談ください。
+MIT ライセンス — 詳細はリポジトリの [LICENSE](LICENSE) ファイルを参照してください。
+
+「Sarashina」は SB Intuitions が提供するモデルの名称であり、本プロジェクトは同社とは無関係の非公式クライアントです。モデルおよび API の利用には SB Intuitions の規約が適用されます。
