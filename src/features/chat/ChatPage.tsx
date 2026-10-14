@@ -228,7 +228,7 @@ export default function ChatPage() {
                   }`}
                 >
                   {message.role === "assistant" ? (
-                    <div className="prose prose-invert prose-sm max-w-none">
+                    <div className="markdown text-sm">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {message.content}
                       </ReactMarkdown>

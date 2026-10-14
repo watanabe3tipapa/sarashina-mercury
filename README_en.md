@@ -5,7 +5,7 @@
 sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large language model "Sarashina" directly from your browser. It stores your own Sarashina API key locally (in the browser) and provides chat, translation, RAG, and Guard as a single installable app that also works offline. The editing experience is inspired by Mercury Editor.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
@@ -134,6 +134,7 @@ On push to `main`, [GitHub Actions](./.github/workflows/deploy-pages.yml) builds
 - The app is served under a sub-path, so the build sets `BASE_PATH=/sarashina-mercury/app/` (reflected in Vite's `base`).
 - Routing uses `import.meta.env.BASE_URL` as its `basename`, with a `404.html` fallback for SPA deep links.
 - Change `BASE_PATH` to serve under a different path.
+- For the published app to reach the API, set the repository variable `SARASHINA_API_BASE` to your Worker URL (e.g. `https://sarashina-proxy.<your-subdomain>.workers.dev/v1`); it is injected into the build as `VITE_SARASHINA_API_BASE`.
 
 ## Security
 
@@ -210,7 +211,15 @@ worker/                            # Cloudflare Worker proxy for CORS
 
 ## Roadmap
 
-### v0.1.0 (current)
+### v0.1.1 (current)
+
+- [x] Inject `VITE_SARASHINA_API_BASE` from a CI variable so production can reach the API
+- [x] Forward `Accept` through the Worker to keep SSE streaming working
+- [x] Harden Worker CORS with Origin checks + `Vary: Origin`, and restrict paths to `/v1/`
+- [x] Add Markdown styling (fixes the inert `prose` classes)
+- [x] Remove unused dependencies and tidy the configuration
+
+### v0.1.0
 
 - [x] Vite + PWA setup
 - [x] API key settings screen (stored locally)

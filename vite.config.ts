@@ -2,6 +2,7 @@ import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 import { VitePWA } from "vite-plugin-pwa"
 import { defineConfig } from "vite"
+import { fileURLToPath } from "node:url"
 
 export default defineConfig({
   base: process.env.BASE_PATH || "/",
@@ -61,7 +62,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@": "/src"
+      "@": fileURLToPath(new URL("./src", import.meta.url))
     }
   },
   server: {

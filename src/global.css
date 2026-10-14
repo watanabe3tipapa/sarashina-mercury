@@ -1,1 +1,99 @@
 @import "tailwindcss";
+
+.markdown {
+  line-height: 1.75;
+  word-break: break-word;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown p {
+  margin: 0.75em 0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 1.25em 0 0.5em;
+}
+.markdown h1 {
+  font-size: 1.4em;
+}
+.markdown h2 {
+  font-size: 1.25em;
+}
+.markdown h3 {
+  font-size: 1.1em;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.75em 0;
+  padding-left: 1.5em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.25em 0;
+}
+.markdown a {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+.markdown code {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 0.25rem;
+  padding: 0.1em 0.35em;
+  font-size: 0.9em;
+}
+.markdown pre {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 0.5rem;
+  margin: 0.9em 0;
+  padding: 0.9em 1em;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875em;
+}
+.markdown blockquote {
+  border-left: 3px solid #475569;
+  color: #cbd5e1;
+  margin: 0.9em 0;
+  padding-left: 1em;
+}
+.markdown table {
+  border-collapse: collapse;
+  margin: 0.9em 0;
+  width: 100%;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid #334155;
+  padding: 0.4em 0.6em;
+  text-align: left;
+}
+.markdown th {
+  background: #1e293b;
+  font-weight: 600;
+}
+.markdown hr {
+  border: 0;
+  border-top: 1px solid #334155;
+  margin: 1.25em 0;
+}
+.markdown img {
+  border-radius: 0.5rem;
+  max-width: 100%;
+}

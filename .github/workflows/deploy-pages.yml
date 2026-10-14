@@ -10,6 +10,7 @@ on:
       - "scripts/**"
       - "index.html"
       - "vite.config.ts"
+      - "tsconfig*.json"
       - "package.json"
       - "pnpm-lock.yaml"
       - "sarashina_api_uxui_guide.html"
@@ -32,6 +33,10 @@ jobs:
       BASE_PATH: /sarashina-mercury/app/
       APP_BASE: /sarashina-mercury/app/
       SITE_BASE: /sarashina-mercury/
+      # Optional: set a repository variable named SARASHINA_API_BASE (e.g. your
+      # deployed Cloudflare Worker URL) so the browser build can reach the API
+      # without CORS errors. See the README for details.
+      VITE_SARASHINA_API_BASE: ${{ vars.SARASHINA_API_BASE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

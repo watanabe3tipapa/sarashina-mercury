@@ -1,5 +1,10 @@
+const configuredBase = import.meta.env.VITE_SARASHINA_API_BASE?.trim()
+
+// Prefer the configured base (a proxy such as the bundled Cloudflare Worker,
+// which is required in production because the API sends no CORS headers).
+// Fall back to the Vite dev proxy in development, or the API origin otherwise.
 const SARASHINA_API_BASE =
-  import.meta.env.VITE_SARASHINA_API_BASE ??
+  configuredBase ||
   (import.meta.env.DEV
     ? "/proxy/sarashina/v1"
     : "https://api.sarashina.ai/v1")

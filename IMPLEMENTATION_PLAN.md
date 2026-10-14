@@ -49,6 +49,14 @@ Mercury Editor を参考にした、Sarashina AI 専用の PWA ツール。
 - [ ] トークン / 料金のリアルタイム推定
 - [ ] カスタムドメイン / 日本リージョン固定プロキシによる CORS 安定化
 
+## v0.1.1（総点検の修正）
+
+- [x] 本番ビルドへ `VITE_SARASHINA_API_BASE` を CI 変数（`SARASHINA_API_BASE`）から注入
+- [x] Worker が `Accept` を転送し、SSE ストリーミングを維持
+- [x] Worker の CORS を Origin 検証 + `Vary: Origin` に強化、パスを `/v1/` に限定
+- [x] Markdown 表示スタイルを追加（`prose` 未適用の修正）
+- [x] 未使用依存の削除（`class-variance-authority` / `react-syntax-highlighter` / `workbox-window` ほか）
+
 ## v0.1.0 時点の成果物
 
 - アプリ（PWA）: チャット / 翻訳 / RAG / Guard / 設定

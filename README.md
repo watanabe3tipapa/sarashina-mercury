@@ -5,7 +5,7 @@
 sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarashina」をブラウザから直接利用できる PWA です。ユーザー自身の Sarashina API キーをローカル（ブラウザ）に保存し、チャット・翻訳・RAG・Guard の各機能を、オフラインでもインストール可能な単一アプリとして提供します。編集体験は Mercury Editor を参考にしています。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.0-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
@@ -134,6 +134,7 @@ pnpm build
 - アプリはサブパス配信のため、ビルド時に `BASE_PATH=/sarashina-mercury/app/` を指定します（Vite の `base` に反映）。
 - ルーティングは `import.meta.env.BASE_URL` を `basename` に使い、`404.html` で SPA の直リンクをフォールバックします。
 - ルート以外で配信する場合は `BASE_PATH` を変更してください。
+- 公開アプリから API に到達させるには、リポジトリ変数 `SARASHINA_API_BASE` に Worker の URL（例: `https://sarashina-proxy.<your-subdomain>.workers.dev/v1`）を設定してください（`VITE_SARASHINA_API_BASE` としてビルドに注入されます）。
 
 ## セキュリティ
 
@@ -210,7 +211,15 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 
 ## ロードマップ
 
-### v0.1.0（現在）
+### v0.1.1（現在）
+
+- [x] 本番で API に到達できるよう `VITE_SARASHINA_API_BASE` を CI 変数から注入
+- [x] Worker が `Accept` を転送し、SSE ストリーミングを維持
+- [x] Worker の CORS を Origin 検証 + `Vary: Origin` に強化し、パスを `/v1/` に限定
+- [x] Markdown 表示用のスタイルを追加（`prose` が未適用だった問題を修正）
+- [x] 未使用依存の削除と軽微な構成整理
+
+### v0.1.0
 
 - [x] Vite + PWA セットアップ
 - [x] API キー設定画面（ローカル保存）

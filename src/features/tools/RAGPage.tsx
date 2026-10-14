@@ -126,7 +126,7 @@ export default function RAGPage() {
           <div className="grid gap-6 lg:grid-cols-[1fr_20rem]">
             <section className="min-w-0">
               <h2 className="text-sm font-medium text-slate-400 mb-2">回答</h2>
-              <article className="prose prose-invert prose-sm max-w-none text-slate-100">
+              <article className="markdown text-sm text-slate-100">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{

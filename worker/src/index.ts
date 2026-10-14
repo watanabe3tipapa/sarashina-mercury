@@ -4,13 +4,24 @@ export interface Env {
   ALLOWED_ORIGIN?: string
 }
 
-function corsHeaders(origin: string): Record<string, string> {
-  return {
-    "Access-Control-Allow-Origin": origin,
+function corsHeaders(
+  origin: string | null,
+  allowedOrigin: string
+): Record<string, string> {
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, Content-Type",
     "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
   }
+  // Only grant access when the request origin is allowed; otherwise omit the
+  // header so the browser blocks the response.
+  if (allowedOrigin === "*") {
+    headers["Access-Control-Allow-Origin"] = "*"
+  } else if (origin === allowedOrigin) {
+    headers["Access-Control-Allow-Origin"] = origin
+  }
+  return headers
 }
 
 function json(body: unknown, status: number, headers: Record<string, string>) {
@@ -22,7 +33,10 @@ function json(body: unknown, status: number, headers: Record<string, string>) {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const cors = corsHeaders(env.ALLOWED_ORIGIN ?? "*")
+    const cors = corsHeaders(
+      request.headers.get("Origin"),
+      env.ALLOWED_ORIGIN ?? "*"
+    )
 
     if (request.method === "OPTIONS") {
       return new Response(null, { status: 204, headers: cors })
@@ -33,13 +47,19 @@ export default {
     }
 
     const { pathname, search } = new URL(request.url)
+
+    if (!pathname.startsWith("/v1/")) {
+      return json({ message: "Not Found" }, 404, cors)
+    }
+
     const authorization = request.headers.get("Authorization")
+    const accept = request.headers.get("Accept")
 
     const upstream = await fetch(`${UPSTREAM}${pathname}${search}`, {
       method: "POST",
       headers: {
         "Content-Type": request.headers.get("Content-Type") ?? "application/json",
-        Accept: "application/json",
+        ...(accept ? { Accept: accept } : {}),
         "User-Agent": "sarashina-mercury",
         ...(authorization ? { Authorization: authorization } : {}),
       },
