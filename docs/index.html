@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sarashina Mercury — Sarashina を、あなたの手元で。</title>
+<meta name="description" content="Sarashina Mercury は、SB Intuitions の国産大規模言語モデル「Sarashina」をブラウザから直接利用できる PWA です。チャット・翻訳・RAG・Guard を、API キーひとつで。">
+<meta name="theme-color" content="#f7f5f0">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Sarashina Mercury — Sarashina を、あなたの手元で。">
+<meta property="og:description" content="API キーひとつで動く国産 LLM の PWA クライアント。チャット・翻訳・RAG・Guard を、オフラインでも。">
+<meta property="og:url" content="https://watanabe3tipapa.github.io/sarashina-mercury/">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&amp;family=Noto+Serif+JP:wght@400;600;700&amp;display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f7f5f0;
+  --surface: #fffefb;
+  --ink: #1a1a1a;
+  --muted: #5c5c5c;
+  --accent: #2e5c8a;
+  --accent-strong: #244a70;
+  --accent-weak: color-mix(in oklab, var(--accent) 10%, var(--surface));
+  --accent-medium: color-mix(in oklab, var(--accent) 25%, var(--surface));
+  --line: color-mix(in oklab, var(--ink) 10%, transparent);
+  --line-strong: color-mix(in oklab, var(--ink) 20%, transparent);
+  --step--2: clamp(0.75rem, 0.72rem + 0.15vw, 0.85rem);
+  --step--1: clamp(0.85rem, 0.8rem + 0.25vw, 1rem);
+  --step-0: clamp(1rem, 0.95rem + 0.3vw, 1.125rem);
+  --step-1: clamp(1.2rem, 1.08rem + 0.6vw, 1.5rem);
+  --step-2: clamp(1.5rem, 1.25rem + 1.2vw, 2.2rem);
+  --step-3: clamp(2rem, 1.5rem + 2.5vw, 3.2rem);
+  --step-4: clamp(2.6rem, 1.9rem + 3.5vw, 4.2rem);
+  --space: clamp(1rem, 0.8rem + 1vw, 1.6rem);
+  --radius: 10px;
+  --shadow: 0 1px 2px rgba(0,0,0,0.04), 0 6px 18px -8px rgba(0,0,0,0.14);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.06), 0 14px 36px -10px rgba(0,0,0,0.18);
+}
+
+* { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+
+body {
+  font-family: "Noto Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: var(--step-0);
+  line-height: 1.85;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4 {
+  font-family: "Noto Serif JP", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: 0.02em;
+}
+
+h1 { font-size: var(--step-4); }
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+a:hover { border-bottom-color: var(--accent); }
+
+img, svg { max-width: 100%; height: auto; display: block; }
+
+.container { width: min(90%, 1100px); margin-inline: auto; }
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 0.6em 1em;
+  z-index: 100;
+}
+.skip-link:focus { left: 0; }
+
+/* Header */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  padding: 0.7rem 0;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  font-size: var(--step-0);
+  color: var(--ink);
+  border-bottom: none;
+  letter-spacing: 0.02em;
+}
+.brand .mark { width: 26px; height: 26px; flex-shrink: 0; }
+.brand b { color: var(--accent); }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 0.9);
+  font-size: var(--step--1);
+}
+.nav-links a { color: var(--muted); }
+.nav-links a:hover { color: var(--accent); }
+
+.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  border: 1px solid var(--line-strong) !important;
+  border-radius: 999px;
+  padding: 0.35em 1em;
+  color: var(--ink) !important;
+  background: var(--surface);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.nav-cta:hover { background: var(--accent-weak); box-shadow: var(--shadow); }
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  padding: 0.4em 0.6em;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .nav-toggle { display: inline-flex; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+    padding: 0.5rem 5%;
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { padding: 0.7em 0; border-top: 1px solid var(--line); }
+  .nav-cta { margin: 0.6em 0; border-top: 1px solid var(--line) !important; }
+}
+
+/* Hero */
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: calc(var(--space) * 5) 0 calc(var(--space) * 4);
+  border-bottom: 1px solid var(--line);
+}
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 60% at 15% 30%, rgba(46,92,138,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 70%, rgba(46,92,138,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  align-items: center;
+  gap: calc(var(--space) * 2);
+}
+@media (max-width: 860px) {
+  .hero-grid { grid-template-columns: 1fr; gap: var(--space); }
+  .hero-art { display: none; }
+}
+
+.hero-label {
+  display: inline-block;
+  font-size: var(--step--2);
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid var(--line-strong);
+  padding: 0.35em 1em;
+  border-radius: 999px;
+  margin-bottom: calc(var(--space) * 1.2);
+}
+.hero h1 { max-width: 16ch; font-feature-settings: "palt"; }
+.hero h1 em { font-style: normal; color: var(--accent); }
+.hero-lead {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: 46ch;
+  margin-top: calc(var(--space) * 1.2);
+  line-height: 1.7;
+}
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) * 0.8);
+  margin-top: calc(var(--space) * 2);
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  font-size: var(--step--1);
+  font-weight: 500;
+  padding: 0.75em 1.5em;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.btn:hover { transform: translateY(-2px); }
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-bottom: none;
+}
+.btn-primary:hover { background: var(--accent-strong); box-shadow: var(--shadow-hover); }
+.btn-ghost {
+  background: var(--surface);
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+.btn-ghost:hover { border-color: var(--accent); box-shadow: var(--shadow); }
+
+.hero-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: calc(var(--space) * 1.8);
+}
+.badge {
+  font-size: var(--step--2);
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.25em 0.85em;
+}
+
+.hero-art { display: grid; place-items: center; }
+.hero-art svg { width: 100%; max-width: 340px; }
+.spin { transform-origin: 170px 170px; animation: spin 40s linear infinite; }
+.spin-rev { transform-origin: 170px 170px; animation: spin 28s linear infinite reverse; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .spin, .spin-rev { animation: none; }
+}
+
+/* Sections */
+section { padding: calc(var(--space) * 3) 0; }
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--space) * 0.8);
+  margin-bottom: calc(var(--space) * 1.5);
+  border-bottom: 1px solid var(--line);
+  padding-bottom: calc(var(--space) * 0.6);
+}
+.section-num {
+  font-family: "Noto Serif JP", serif;
+  font-size: var(--step-2);
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.35;
+  line-height: 1;
+}
+.section-title { margin: 0; font-size: var(--step-2); }
+.section-sub { color: var(--muted); font-size: var(--step--1); margin-top: 0.6em; max-width: 62ch; }
+
+/* Grid & cards */
+.grid { display: grid; gap: calc(var(--space) * 1); }
+.grid-2 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); }
+.grid-3 { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 1.3);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+.card:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.card h3 { font-size: var(--step-1); margin-top: 0; }
+.card p, .card ul { font-size: var(--step--1); color: var(--muted); margin-top: 0.6em; }
+
+.card-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--accent-weak);
+  color: var(--accent);
+  margin-bottom: 0.9rem;
+}
+.card-icon svg { width: 22px; height: 22px; }
+.card .tag {
+  display: inline-block;
+  font-size: var(--step--2);
+  color: var(--muted);
+  margin-top: 0.8em;
+  letter-spacing: 0.02em;
+}
+
+/* Table */
+.table-wrap { overflow-x: auto; margin-top: calc(var(--space) * 1.2); }
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-width: 640px;
+}
+th, td { padding: 0.85em 1em; text-align: left; border-bottom: 1px solid var(--line); }
+th {
+  background: var(--accent-weak);
+  font-weight: 600;
+  font-size: var(--step--2);
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(46,92,138,0.02); }
+td code { white-space: nowrap; }
+
+code, pre {
+  font-family: "SF Mono", "Menlo", "Monaco", "Cascadia Code", monospace;
+  font-size: 0.9em;
+}
+code {
+  background: var(--accent-weak);
+  padding: 0.15em 0.45em;
+  border-radius: 4px;
+  color: var(--accent);
+}
+pre {
+  background: #1e1e1e;
+  color: #e8e8e8;
+  padding: calc(var(--space) * 1);
+  border-radius: var(--radius);
+  overflow-x: auto;
+  margin-top: calc(var(--space) * 0.8);
+  line-height: 1.6;
+}
+pre code { background: transparent; color: inherit; padding: 0; }
+
+/* Principles */
+.principle {
+  display: flex;
+  gap: calc(var(--space) * 0.9);
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: calc(var(--space) * 1) calc(var(--space) * 1.1);
+}
+.principle .num {
+  flex-shrink: 0;
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  font-size: var(--step-1);
+  color: var(--accent);
+  line-height: 1;
+}
+.principle h3 { font-size: var(--step-0); margin: 0; }
+.principle p { font-size: var(--step--1); color: var(--muted); margin-top: 0.35em; }
+
+/* Stack */
+.stack {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 0.7rem;
+}
+.stack .item {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 0.9em 1em;
+}
+.stack .item .k { font-size: var(--step--2); color: var(--muted); letter-spacing: 0.04em; }
+.stack .item .v { font-weight: 500; font-size: var(--step--1); margin-top: 0.15em; }
+
+/* Steps */
+.steps { counter-reset: step; display: grid; gap: calc(var(--space) * 1.2); margin-top: calc(var(--space) * 1.2); }
+.step { display: flex; gap: calc(var(--space) * 1); align-items: flex-start; }
+.step-num {
+  flex-shrink: 0;
+  width: 2.4em;
+  height: 2.4em;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  border-radius: 50%;
+  font-family: "Noto Serif JP", serif;
+  font-weight: 700;
+  line-height: 1;
+}
+.step-body { flex: 1; min-width: 0; }
+.step-body h3 { margin-top: 0.1em; font-size: var(--step-0); }
+.step-body p { font-size: var(--step--1); color: var(--muted); margin-top: 0.3em; }
+
+/* Callout */
+.callout {
+  background: var(--accent-weak);
+  border-left: 3px solid var(--accent);
+  padding: calc(var(--space) * 1) calc(var(--space) * 1.2);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  margin-top: calc(var(--space) * 1.2);
+  font-size: var(--step--1);
+}
+.callout strong { color: var(--accent); }
+
+/* CTA band */
+.cta-band {
+  background: linear-gradient(140deg, #244a70, #2e5c8a 55%, #3a6f9e);
+  color: #f4f7fb;
+  border-radius: var(--radius);
+  padding: calc(var(--space) * 2.2) calc(var(--space) * 1.6);
+  text-align: center;
+}
+.cta-band h2 { color: #fff; font-size: var(--step-2); }
+.cta-band p { color: rgba(244,247,251,0.85); max-width: 52ch; margin: calc(var(--space) * 0.8) auto 0; }
+.cta-band .btn-primary { background: #fff; color: var(--accent-strong); }
+.cta-band .btn-primary:hover { background: #eef3f9; }
+.cta-band .btn-ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,0.5); }
+.cta-band .btn-ghost:hover { border-color: #fff; }
+.cta-band .hero-actions { justify-content: center; }
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: calc(var(--space) * 2) 0;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+.footer-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space);
+  align-items: center;
+}
+.footer-links { display: flex; flex-wrap: wrap; gap: var(--space); }
+.footer-links a { color: var(--muted); }
+.footer-links a:hover { color: var(--accent); }
+
+/* Reveal on scroll */
+.reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">本文へスキップ</a>
+
+<header class="site-header">
+  <div class="container">
+    <nav class="nav" aria-label="メインナビゲーション">
+      <a class="brand" href="#top">
+        <svg class="mark" viewBox="0 0 40 40" fill="none" aria-hidden="true">
+          <circle cx="20" cy="20" r="7" fill="#2e5c8a"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#2e5c8a" stroke-width="1.6" opacity="0.55"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#2e5c8a" stroke-width="1.6" opacity="0.35" transform="rotate(60 20 20)"/>
+          <circle cx="34" cy="14" r="2.4" fill="#2e5c8a"/>
+        </svg>
+        Sarashina&nbsp;<b>Mercury</b>
+      </a>
+      <button class="nav-toggle" aria-expanded="false" aria-controls="nav-links">
+        メニュー
+      </button>
+      <div class="nav-links" id="nav-links">
+        <a href="#features">特徴</a>
+        <a href="#models">モデル</a>
+        <a href="#principles">設計原則</a>
+        <a href="#start">はじめ方</a>
+        <a class="nav-cta" href="https://github.com/watanabe3tipapa/sarashina-mercury" target="_blank" rel="noopener">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.7.5.5 5.7.5 12c0 5.1 3.3 9.4 7.9 10.9.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.6-.3-5.3-1.3-5.3-5.8 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.6.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.5-2.7 5.5-5.3 5.8.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.6-1.5 7.9-5.8 7.9-10.9C23.5 5.7 18.3.5 12 .5Z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="container hero-grid">
+      <div>
+        <span class="hero-label">Sarashina AI × PWA</span>
+        <h1>Sarashina を、<br><em>あなたの手元で。</em></h1>
+        <p class="hero-lead">
+          API キーひとつで動く国産 LLM の PWA クライアント。チャット・翻訳・RAG・Guard を、
+          サーバーに鍵を預けず、オフラインでも使える単一アプリにまとめました。
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/watanabe3tipapa/sarashina-mercury" target="_blank" rel="noopener">GitHub で見る</a>
+          <a class="btn btn-ghost" href="./guide.html">設計ガイドを読む</a>
+        </div>
+        <div class="hero-badges" aria-label="技術スタック">
+          <span class="badge">React 19</span>
+          <span class="badge">TypeScript</span>
+          <span class="badge">Vite</span>
+          <span class="badge">Tailwind CSS v4</span>
+          <span class="badge">PWA</span>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 340 340" fill="none">
+          <circle cx="170" cy="170" r="150" stroke="color-mix(in oklab, #2e5c8a 18%, transparent)" stroke-width="1"/>
+          <circle cx="170" cy="170" r="110" stroke="color-mix(in oklab, #2e5c8a 14%, transparent)" stroke-width="1"/>
+          <g class="spin">
+            <ellipse cx="170" cy="170" rx="150" ry="58" stroke="#2e5c8a" stroke-width="1.4" opacity="0.5"/>
+            <circle cx="320" cy="170" r="6" fill="#2e5c8a"/>
+          </g>
+          <g class="spin-rev">
+            <ellipse cx="170" cy="170" rx="120" ry="42" stroke="#2e5c8a" stroke-width="1.4" opacity="0.35" transform="rotate(55 170 170)"/>
+            <circle cx="58" cy="196" r="4.5" fill="#2e5c8a" opacity="0.8"/>
+          </g>
+          <circle cx="170" cy="170" r="34" fill="#2e5c8a"/>
+          <circle cx="170" cy="170" r="34" fill="url(#glow)"/>
+          <defs>
+            <radialGradient id="glow" cx="0.35" cy="0.3" r="0.8">
+              <stop offset="0%" stop-color="#6d9bc4"/>
+              <stop offset="100%" stop-color="#2e5c8a"/>
+            </radialGradient>
+          </defs>
+          <text x="170" y="178" text-anchor="middle" font-family="'Noto Serif JP', serif" font-size="20" fill="#fff" font-weight="700">S</text>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">01</span>
+        <h2 class="section-title">4 つの営みを、ひとつのアプリに</h2>
+      </div>
+      <p class="section-sub reveal" style="margin-top:-0.6rem;margin-bottom:1.6rem;">
+        対話する・翻訳する・根拠を探す・安全を確かめる。Sarashina のモデル群を、日常の言葉で使える UI にしました。
+      </p>
+      <div class="grid grid-3">
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3>対話する</h3>
+          <p><code>sarashina3-mini</code> / <code>nano</code> を切り替えられるストリーミングチャット。Markdown と GFM をそのまま描画します。</p>
+          <span class="tag">Chat Completions</span>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg></div>
+          <h3>翻訳する</h3>
+          <p>方向（日→英 / 英→日）とトーン（business-formal / business-casual / technical / marketing）を指定した、文脈を汲む翻訳。</p>
+          <span class="tag">Translate</span>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg></div>
+          <h3>根拠を探す</h3>
+          <p>Embeddings と Rerank で文書を関連度順に並べ、引用元を本文からたどれる根拠付きの回答を返します。</p>
+          <span class="tag">Embeddings + Rerank</span>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+          <h3>安全を確かめる</h3>
+          <p>入力テキストの安全性を <code>sarashina3-guard</code> で判定。威圧せず、前向きな回復導線として提示します。</p>
+          <span class="tag">Guard</span>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v8"/><path d="m8 6 4 4 4-4"/><path d="M4 12a8 8 0 1 0 16 0"/><path d="M2 22h20"/></svg></div>
+          <h3>オフラインで使う</h3>
+          <p>vite-plugin-pwa と Workbox によるインストール可能な PWA。端末のホーム画面からアプリとして起動できます。</p>
+          <span class="tag">Installable</span>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2"/><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 21 2"/><path d="M16 8l2 2"/></svg></div>
+          <h3>鍵を持ち歩く</h3>
+          <p>API キーはブラウザの <code>localStorage</code> にのみ保存。サーバーへは送らず、リクエストごとに直接利用します。</p>
+          <span class="tag">Data sovereignty</span>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="models">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">02</span>
+        <h2 class="section-title">対応モデル</h2>
+      </div>
+      <div class="table-wrap reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>モデル ID</th>
+              <th>コンテキスト</th>
+              <th>主な用途</th>
+              <th>API カテゴリ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><code>sarashina3-mini</code></td><td>128k tokens</td><td>標準対話、Tool-calling、数学・コーディング</td><td>Chat Completions</td></tr>
+            <tr><td><code>sarashina3-nano</code></td><td>128k tokens</td><td>高速バッチ処理（抽出・要約・分類）</td><td>Chat Completions</td></tr>
+            <tr><td><code>sarashina3-guard</code></td><td>64k tokens</td><td>入出力の安全性判定・モデレーション</td><td>Chat Completions</td></tr>
+            <tr><td><code>sarashina3-embedding</code></td><td>8,000 tokens</td><td>テキストベクトル化、RAG 候補抽出</td><td>Embeddings</td></tr>
+            <tr><td><code>sarashina3-rerank</code></td><td>8,000 tokens</td><td>クエリと文書の関連度スコアリング</td><td>Rerank</td></tr>
+            <tr><td><code>sarashina3-translate</code></td><td>5,000 文字</td><td>日英・英日訳（文脈・トーン考慮）</td><td>Translate</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="principles">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">03</span>
+        <h2 class="section-title">UX/UI の設計原則</h2>
+      </div>
+      <div class="grid grid-2">
+        <div class="principle reveal">
+          <span class="num">一</span>
+          <div>
+            <h3>日本語の「間」を尊重する</h3>
+            <p>省略や婉曲を前提とし、完全な文の強制より意図の補完を支援します。</p>
+          </div>
+        </div>
+        <div class="principle reveal">
+          <span class="num">二</span>
+          <div>
+            <h3>敬語レベルを可視化する</h3>
+            <p>丁寧語・謙譲語・尊敬語のトーンを選択し、翻訳の前にプレビューできます。</p>
+          </div>
+        </div>
+        <div class="principle reveal">
+          <span class="num">三</span>
+          <div>
+            <h3>遅延を設計する</h3>
+            <p>ストリーミング表示と進行状況の可視化で、待機の不安を軽減します。</p>
+          </div>
+        </div>
+        <div class="principle reveal">
+          <span class="num">四</span>
+          <div>
+            <h3>安全性の透明性を保つ</h3>
+            <p>Guard の判定は威圧的でなく、前向きな回復導線として提示します。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">04</span>
+        <h2 class="section-title">アーキテクチャ</h2>
+      </div>
+      <p class="section-sub reveal" style="margin-top:-0.6rem;margin-bottom:1.4rem;">
+        サーバーを介さず、ブラウザから Sarashina API を直接呼び出すシンプルな SPA です。CORS は薄い Cloudflare Worker プロキシで補います。
+      </p>
+      <div class="stack reveal">
+        <div class="item"><div class="k">FRAMEWORK</div><div class="v">Vite + React 19</div></div>
+        <div class="item"><div class="k">LANGUAGE</div><div class="v">TypeScript</div></div>
+        <div class="item"><div class="k">STYLING</div><div class="v">Tailwind CSS v4</div></div>
+        <div class="item"><div class="k">STATE</div><div class="v">zustand + persist</div></div>
+        <div class="item"><div class="k">STORAGE</div><div class="v">localStorage / IndexedDB</div></div>
+        <div class="item"><div class="k">PWA</div><div class="v">vite-plugin-pwa</div></div>
+        <div class="item"><div class="k">STREAMING</div><div class="v">SSE over fetch</div></div>
+        <div class="item"><div class="k">PROXY</div><div class="v">Cloudflare Worker</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="start">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-num">05</span>
+        <h2 class="section-title">はじめ方</h2>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <span class="step-num">1</span>
+          <div class="step-body">
+            <h3>リポジトリを取得する</h3>
+            <pre><code>git clone https://github.com/watanabe3tipapa/sarashina-mercury.git
+cd sarashina-mercury
+pnpm install</code></pre>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">2</span>
+          <div class="step-body">
+            <h3>開発サーバーを起動する</h3>
+            <pre><code>pnpm dev</code></pre>
+            <p>起動後、アプリの「設定」から API キーを登録すると各機能が利用できます。</p>
+          </div>
+        </div>
+        <div class="step reveal">
+          <span class="step-num">3</span>
+          <div class="step-body">
+            <h3>本番ビルドして公開する</h3>
+            <pre><code>pnpm build   # 型チェック + 本番ビルド → dist/</code></pre>
+            <p>本番では CORS 回避のため Cloudflare Worker の URL を <code>VITE_SARASHINA_API_BASE</code> に設定します。</p>
+          </div>
+        </div>
+      </div>
+      <div class="callout reveal">
+        <strong>セキュリティ:</strong> API キーは <code>localStorage</code> に保存され、Sarashina API 以外へ送信されません。
+        公開端末での利用は避け、必要に応じてキーをローテーションしてください。
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="container">
+      <div class="cta-band reveal">
+        <h2>Sarashina を、あなたの手元に。</h2>
+        <p>スターや Issue でのフィードバックを歓迎します。設計の詳細はガイドにまとめています。</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="https://github.com/watanabe3tipapa/sarashina-mercury" target="_blank" rel="noopener">リポジトリを開く</a>
+          <a class="btn btn-ghost" href="./guide.html">設計ガイド</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="container footer-grid">
+    <div>
+      <strong style="font-family:'Noto Serif JP',serif;color:var(--ink)">Sarashina&nbsp;Mercury</strong><br>
+      API キーひとつで動く、国産 LLM の PWA クライアント。
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/watanabe3tipapa/sarashina-mercury" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/watanabe3tipapa/sarashina-mercury/issues" target="_blank" rel="noopener">Issues</a>
+      <a href="./guide.html">設計ガイド</a>
+      <a href="https://www.sbintuitions.co.jp/" target="_blank" rel="noopener">SB Intuitions</a>
+    </div>
+  </div>
+  <div class="container" style="margin-top:1.2rem;font-size:var(--step--2);opacity:0.8;">
+    &copy; <span id="year">2026</span> sarashina-mercury. Sarashina は SB Intuitions が提供する大規模言語モデルです。
+  </div>
+</footer>
+
+<script>
+(function () {
+  var toggle = document.querySelector(".nav-toggle");
+  var links = document.getElementById("nav-links");
+  if (toggle && links) {
+    toggle.addEventListener("click", function () {
+      var open = links.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    links.addEventListener("click", function (e) {
+      if (e.target.tagName === "A") {
+        links.classList.remove("open");
+        toggle.setAttribute("aria-expanded", "false");
+      }
+    });
+  }
+
+  var year = document.getElementById("year");
+  if (year) { year.textContent = String(new Date().getFullYear()); }
+
+  var items = document.querySelectorAll(".reveal");
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("in");
+          io.unobserve(entry.target);
+        }
+      });
+    }, { rootMargin: "0px 0px -10% 0px", threshold: 0.1 });
+    items.forEach(function (el) { io.observe(el); });
+  } else {
+    items.forEach(function (el) { el.classList.add("in"); });
+  }
+})();
+</script>
+</body>
+</html>
