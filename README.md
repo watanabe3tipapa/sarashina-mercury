@@ -7,13 +7,13 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 > **日本語の豊かさを技術で支える。** 婉曲表現・省略・文脈推論――Sarashina が体現する日本語の豊かさを、単なる機能の羅列ではなく編集体験として、ユーザーの手元に届けること。それが sarashina-mercury の狙いです。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.2-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
 [日本語](README.md) | [English](README_en.md)
 
-**クイックリンク:** [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) · [アプリを開く](https://watanabe3tipapa.github.io/sarashina-mercury/app/) · [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) · [実装計画](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
+**クイックリンク:** [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) · [アプリを開く](https://watanabe3tipapa.github.io/sarashina-mercury/app/) · [UX/UI 設計ガイド](https://watanabe3tipapa.github.io/sarashina-mercury/guide.html) · [実装計画](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
 ## コンセプト
 
@@ -215,7 +215,13 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 
 ## ロードマップ
 
-### v0.1.1（現在）
+### v0.1.2（現在）
+
+- [x] 翻訳エディタ（Lexical ベースの並列対訳・段落ホバー同期・訳文の直接編集）
+- [x] ツールページのコード分割（Lexical を初期バンドルから分離）
+- [x] ランディングページと設計ガイドのデザイン統一、ドキュメント総点検
+
+### v0.1.1
 
 - [x] 本番で API に到達できるよう `VITE_SARASHINA_API_BASE` を CI 変数から注入
 - [x] Worker が `Accept` を転送し、SSE ストリーミングを維持
@@ -238,7 +244,7 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 
 ## ドキュメント
 
-1. [UX/UI 設計ガイド](./sarashina_api_uxui_guide.html) — モデル選定、エンドポイント別 UI パターン、デザイントークン、導入ワークフロー
+1. [UX/UI 設計ガイド](https://watanabe3tipapa.github.io/sarashina-mercury/guide.html) — モデル選定、エンドポイント別 UI パターン、デザイントークン、導入ワークフロー（ソース: [`sarashina_api_uxui_guide.html`](./sarashina_api_uxui_guide.html)）
 2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — MVP の実装計画
 3. [公開サイト](https://watanabe3tipapa.github.io/sarashina-mercury/) — ランディングページとアプリ
 

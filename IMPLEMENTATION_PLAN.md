@@ -2,8 +2,8 @@
 
 ## 概要
 
-Mercury Editor を参考にした、Sarashina AI 専用の PWA ツール。
-ユーザーが自身の Sarashina API キーを持ち、ブラウザ上で Sarashina AI を自由に利用できる。
+Mercury Editor を参考にした、Sarashina 専用の PWA ツール。
+ユーザーが自身の Sarashina API キーを持ち、ブラウザ上で Sarashina を自由に利用できる。
 
 ## 目標
 
@@ -35,16 +35,17 @@ Mercury Editor を参考にした、Sarashina AI 専用の PWA ツール。
 - [x] 会話履歴（IndexedDB）
 - [x] システムプロンプト設定
 
-## v1.1（ガイド準拠）
+## v0.1.2（ガイド準拠）
 
 - [x] トーン制御（翻訳時）
 - [x] RAG（Rerank + Chat + 根拠表示）
 - [x] Guard 判定の表示
 - [x] サイドバー UI（チャット・ツール切替）
 - [x] 翻訳エディタ（Lexical 並列対訳・段落ホバー同期）
+- [x] ツールページのコード分割（Lexical を初期バンドルから分離）
 - [ ] Guard 警告 UI（回復導線の強化）
 
-## v1.2（予定）
+## v0.1.3（予定）
 
 - [ ] トークン / 料金のリアルタイム推定
 - [ ] カスタムドメイン / 日本リージョン固定プロキシによる CORS 安定化

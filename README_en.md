@@ -7,13 +7,13 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 > **Backing the richness of Japanese with technology.** Euphemism, omission, and inference from context — sarashina-mercury aims to deliver the richness Sarashina embodies not as a list of features but as an editing experience, right in your hands.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.2-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
 [日本語](README.md) | [English](README_en.md)
 
-**Quick links:** [Live site](https://watanabe3tipapa.github.io/sarashina-mercury/) · [Open the app](https://watanabe3tipapa.github.io/sarashina-mercury/app/) · [UX/UI guide](./sarashina_api_uxui_guide.html) · [Implementation plan](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
+**Quick links:** [Live site](https://watanabe3tipapa.github.io/sarashina-mercury/) · [Open the app](https://watanabe3tipapa.github.io/sarashina-mercury/app/) · [UX/UI guide](https://watanabe3tipapa.github.io/sarashina-mercury/guide.html) · [Implementation plan](./IMPLEMENTATION_PLAN.md) · [Issues](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
 ## Concept
 
@@ -215,7 +215,13 @@ worker/                            # Cloudflare Worker proxy for CORS
 
 ## Roadmap
 
-### v0.1.1 (current)
+### v0.1.2 (current)
+
+- [x] Translation editor (Lexical-based parallel translation, paragraph hover sync, in-place editing)
+- [x] Code-split tool pages (keep Lexical out of the initial bundle)
+- [x] Unified LP/guide design and a full documentation review
+
+### v0.1.1
 
 - [x] Inject `VITE_SARASHINA_API_BASE` from a CI variable so production can reach the API
 - [x] Forward `Accept` through the Worker to keep SSE streaming working
@@ -238,7 +244,7 @@ worker/                            # Cloudflare Worker proxy for CORS
 
 ## Documentation
 
-1. [UX/UI guide](./sarashina_api_uxui_guide.html) — model selection, UI patterns per endpoint, design tokens, and an adoption workflow
+1. [UX/UI guide](https://watanabe3tipapa.github.io/sarashina-mercury/guide.html) — model selection, UI patterns per endpoint, design tokens, and an adoption workflow (source: [`sarashina_api_uxui_guide.html`](./sarashina_api_uxui_guide.html))
 2. [IMPLEMENTATION_PLAN.md](./IMPLEMENTATION_PLAN.md) — the MVP plan
 3. [Live site](https://watanabe3tipapa.github.io/sarashina-mercury/) — landing page and app
 
