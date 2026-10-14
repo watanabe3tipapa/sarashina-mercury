@@ -4,6 +4,8 @@
 
 sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large language model "Sarashina" directly from your browser. It stores your own Sarashina API key locally (in the browser) and provides chat, translation, RAG, and Guard as a single installable app that also works offline. The editing experience is inspired by Mercury Editor.
 
+> **Backing the richness of Japanese with technology.** Euphemism, omission, and inference from context — sarashina-mercury aims to deliver the richness Sarashina embodies not as a list of features but as an editing experience, right in your hands.
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
@@ -17,7 +19,7 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 
 ### Why "Mercury"
 
-Sarashina API is a model that embodies the character of the Japanese language. Rather than listing features, sarashina-mercury elevates the richness of Japanese — euphemism, omission, and inference from context — into an editing experience, with Mercury Editor as its model. By keeping your API key out of any server and connecting only your browser directly to the Sarashina API, it aims to be a comfortable PWA that preserves your data sovereignty.
+**Backing the richness of Japanese with technology.** Sarashina API is a model that embodies the character of the Japanese language. Rather than listing features, sarashina-mercury elevates the richness of Japanese — euphemism, omission, and inference from context — into an editing experience, with Mercury Editor as its model. By keeping your API key out of any server and connecting only your browser directly to the Sarashina API, it aims to be a comfortable PWA that preserves your data sovereignty.
 
 | Activity | In sarashina-mercury |
 |---|---|

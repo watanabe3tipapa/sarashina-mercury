@@ -4,6 +4,8 @@
 
 sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarashina」をブラウザから直接利用できる PWA です。ユーザー自身の Sarashina API キーをローカル（ブラウザ）に保存し、チャット・翻訳・RAG・Guard の各機能を、オフラインでもインストール可能な単一アプリとして提供します。編集体験は Mercury Editor を参考にしています。
 
+> **日本語の豊かさを技術で支える。** 婉曲表現・省略・文脈推論――Sarashina が体現する日本語の豊かさを、単なる機能の羅列ではなく編集体験として、ユーザーの手元に届けること。それが sarashina-mercury の狙いです。
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-v0.1.1-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
@@ -17,7 +19,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 
 ### なぜ「Mercury」なのか
 
-Sarashina API は「日本語らしさ」を体現するモデルです。婉曲表現・省略・文脈推論といった日本語の豊かさを、単なる機能の羅列ではなく編集体験として昇華させる――その手本とするのが Mercury Editor です。sarashina-mercury は、API キーをサーバーに預けず、ブラウザと Sarashina API だけを直接つなぐことで、データ主権を保ったまま快適な PWA を目指します。
+**日本語の豊かさを技術で支える。** Sarashina API は「日本語らしさ」を体現するモデルです。婉曲表現・省略・文脈推論といった日本語の豊かさを、単なる機能の羅列ではなく編集体験として昇華させる――その手本とするのが Mercury Editor です。sarashina-mercury は、API キーをサーバーに預けず、ブラウザと Sarashina API だけを直接つなぐことで、データ主権を保ったまま快適な PWA を目指します。
 
 | 営み | sarashina-mercury の対応物 |
 |---|---|
