@@ -78,7 +78,17 @@ export default function RAGPage() {
     }
   }
 
-  const answerWithLinks = answer.replace(/\[(\d+)\]/g, "[$1](#source-$1)")
+  // Convert bare citations like [1] into links while leaving real Markdown
+  // links ([1](url)) and reference-style links ([text][1]) untouched.
+  const answerWithLinks = answer.replace(
+    /\[(\d+)\]/g,
+    (match: string, n: string, offset: number, str: string) => {
+      if (str[offset + match.length] === "(") return match
+      const prevBracket = str.slice(0, offset).match(/\[([^\]]*)\]$/)
+      if (prevBracket && !/^\d+$/.test(prevBracket[1])) return match
+      return `[${n}](#source-${n})`
+    }
+  )
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">

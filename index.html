@@ -12,6 +12,26 @@
       content="Sarashina を自分の API キーで使う、国産 LLM の PWA クライアント。チャット・翻訳エディタ・RAG・Guard をオフラインでも。"
     />
     <title>Sarashina Mercury</title>
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the
+      // wrong colour scheme.
+      (function () {
+        try {
+          var raw = localStorage.getItem("sarashina-settings");
+          var pref = raw ? (JSON.parse(raw).state || {}).theme : "system";
+          var light =
+            pref === "light" ||
+            (pref !== "dark" &&
+              window.matchMedia("(prefers-color-scheme: light)").matches);
+          var root = document.documentElement;
+          root.dataset.theme = light ? "light" : "dark";
+          root.style.colorScheme = light ? "light" : "dark";
+          document
+            .querySelector('meta[name="theme-color"]')
+            .setAttribute("content", light ? "#f8fafc" : "#020617");
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

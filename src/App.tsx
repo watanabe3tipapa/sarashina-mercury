@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import ChatPage from "./features/chat/ChatPage"
+import { useThemeSync } from "./hooks/useThemeSync"
 
 // Tool pages are code-split so the heavy editor (Lexical) stays out of the
 // initial bundle.
@@ -20,6 +21,7 @@ function PageFallback() {
 }
 
 function App() {
+  useThemeSync()
   return (
     <BrowserRouter basename={basename}>
       <Suspense fallback={<PageFallback />}>

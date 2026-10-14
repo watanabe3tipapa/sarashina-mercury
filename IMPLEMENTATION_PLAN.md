@@ -43,12 +43,24 @@ Mercury Editor を参考にした、Sarashina 専用の PWA ツール。
 - [x] サイドバー UI（チャット・ツール切替）
 - [x] 翻訳エディタ（Lexical 並列対訳・段落ホバー同期）
 - [x] ツールページのコード分割（Lexical を初期バンドルから分離）
-- [ ] Guard 警告 UI（回復導線の強化）
+- [x] Guard 警告 UI（回復導線の強化）
 
 ## v0.1.3（予定）
 
 - [ ] トークン / 料金のリアルタイム推定
 - [ ] カスタムドメイン / 日本リージョン固定プロキシによる CORS 安定化
+
+## コードレビュー指摘への対応
+
+- [x] `useChatStore` の `initStarted` をモジュールスコープ変数からストア状態 `initialized` へ移行
+- [x] RAG の引用置換を Markdown リンク（`[n](url)`・`[text][n]`）と衝突しない正規表現に修正
+- [x] `postJSON` のエラー本文を JSON 優先で解析（可読性向上）、SSE 解析失敗を dev 時のみ警告
+- [x] 表記統一（`APIキー`→`API キー`、`Sarashina AI`→`Sarashina`、`営み`→`機能`）
+- [x] Vitest + React Testing Library を導入（API クライアント・トークン推定・Guard 通知 UI・設定ストアの単体テスト、`pnpm test`）
+- [x] API キーのセッション限定保存オプション（`sessionStorage` 切替トグル、ストアの選択的永続化）
+- [x] ライトテーマ（`prefers-color-scheme` 連携、設定でシステム / ライト / ダークを選択）
+
+> 注: レビューの「緊急」項目（存在しない依存バージョン・`main.tsx` の構文エラー・`index.html` の title 欠落）はいずれも実際には該当しない（依存は全て実在し、ビルド・lint も成功。`main.tsx` と `index.html` は正しい）。レビュアーの環境情報が古いことによる誤検出のため、コード変更は行っていない。
 
 ## v0.1.1（総点検の修正）
 

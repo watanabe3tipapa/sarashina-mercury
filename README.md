@@ -21,7 +21,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 
 **日本語の豊かさを技術で支える。** Sarashina API は「日本語らしさ」を体現するモデルです。婉曲表現・省略・文脈推論といった日本語の豊かさを、単なる機能の羅列ではなく編集体験として昇華させる――その手本とするのが Mercury Editor です。sarashina-mercury は、API キーをサーバーに預けず、ブラウザと Sarashina API だけを直接つなぐことで、データ主権を保ったまま快適な PWA を目指します。
 
-| 営み | sarashina-mercury の対応物 |
+| 機能 | sarashina-mercury の対応物 |
 |---|---|
 | 対話する | `sarashina3-mini` / `sarashina3-nano` によるストリーミングチャット |
 | 翻訳する | `sarashina3-translate` によるトーン指定翻訳 |
@@ -55,8 +55,8 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 - **チャット** — `sarashina3-mini` / `sarashina3-nano` を切替可能なストリーミング対話。Markdown + GFM をレンダリング
 - **翻訳エディタ** — Lexical ベースの並列対訳。方向（日→英 / 英→日）とトーン（`business-formal` / `business-casual` / `technical` / `marketing`）を指定し、段落をホバーで対応付け。訳文はそのまま編集・コピー・入れ替えが可能
 - **RAG** — クエリと文書群に対する Embeddings + Rerank で、根拠付きの関連度順結果を表示
-- **Guard** — 入力テキストの安全性判定結果を表示
-- **設定** — API キーと既定モデルをブラウザに保存・切替
+- **Guard** — 入力テキストの安全性判定。カテゴリ別の理由提示と「別の表現を試す」回復導線を備え、威圧的でない穏やかな警告として表示
+- **設定** — API キーと既定モデルをブラウザに保存・切替。API キーはセッション限定（`sessionStorage`）での保持も選択可能。テーマはシステム / ライト / ダークを切替（`prefers-color-scheme` 連携）
 
 ### アーキテクチャ
 
@@ -188,17 +188,21 @@ src/
 ├── main.tsx                      # エントリポイント
 ├── features/
 │   ├── chat/ChatPage.tsx          # チャット（ストリーミング）
-│   ├── settings/SettingsPage.tsx  # API キー / モデル設定
+│   ├── settings/SettingsPage.tsx  # API キー / モデル / テーマ設定
 │   └── tools/
 │       ├── TranslatePage.tsx      # 翻訳エディタ（Lexical・トーン制御）
 │       ├── RAGPage.tsx            # Rerank + Chat（引用元付き回答）
-│       └── GuardPage.tsx          # 安全性判定
+│       └── GuardPage.tsx          # 安全性判定（回復導線付き）
 ├── components/
 │   ├── SourceCitation.tsx         # 引用元カード（関連度バー・スクロール）
+│   ├── GuardNotice.tsx            # Guard の穏やかな警告（カテゴリ別理由・言い換え支援）
 │   └── editor/EditorPane.tsx      # Lexical エディタ（並列対訳）
+├── hooks/
+│   └── useThemeSync.ts            # テーマ適用・OS 設定への追従
 ├── lib/
 │   ├── api/sarashina.ts           # Sarashina API クライアント
 │   ├── db/conversations.ts        # 会話履歴の永続化（IndexedDB）
+│   ├── theme.ts                   # テーマ解決（system / light / dark）
 │   ├── tokens.ts                  # トークン推定
 │   └── utils.ts                   # クラス名ユーティリティ（cn）
 └── store/
@@ -215,7 +219,15 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 
 ## ロードマップ
 
-### v0.1.2（現在）
+### v0.1.3（開発中）
+
+- [x] Guard の回復導線 UI（カテゴリ別の理由提示・言い換え支援・再判定）
+- [x] API キーのセッション限定保存オプション（`sessionStorage`）
+- [x] ライトテーマ（`prefers-color-scheme` 連携、システム / ライト / ダーク選択）
+- [x] Vitest + React Testing Library による単体テスト（API クライアント・ストア・UI）
+- [ ] トークン / 料金のリアルタイム推定
+
+### v0.1.2（リリース済み）
 
 - [x] 翻訳エディタ（Lexical ベースの並列対訳・段落ホバー同期・訳文の直接編集）
 - [x] ツールページのコード分割（Lexical を初期バンドルから分離）

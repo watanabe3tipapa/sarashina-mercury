@@ -206,7 +206,7 @@ export default function ChatPage() {
         <main className="flex-1 overflow-y-auto">
           {!apiKey && (
             <div className="p-4 text-center text-yellow-400">
-              APIキーが未設定です。設定から登録してください。
+              API キーが未設定です。設定から登録してください。
             </div>
           )}
           {ready && messages.length === 0 && (
@@ -260,7 +260,7 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={apiKey ? "メッセージを入力..." : "APIキーを設定してください"}
+              placeholder={apiKey ? "メッセージを入力..." : "API キーを設定してください"}
               disabled={!apiKey || isLoading}
               rows={2}
               className="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"

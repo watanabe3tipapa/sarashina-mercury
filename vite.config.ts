@@ -16,7 +16,7 @@ export default defineConfig({
         name: "Sarashina Mercury",
         short_name: "Sarashina",
         description:
-          "Sarashina AI を自分の API キーで使う、国産 LLM の PWA クライアント",
+          "Sarashina を自分の API キーで使う、国産 LLM の PWA クライアント",
         lang: "ja",
         theme_color: "#020617",
         background_color: "#020617",

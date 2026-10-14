@@ -169,7 +169,7 @@ export default function TranslatePage() {
 
         {!apiKey && (
           <div className="text-sm text-yellow-400 border border-yellow-800 rounded p-3">
-            APIキーが未設定です。設定から登録してください。
+            API キーが未設定です。設定から登録してください。
           </div>
         )}
 

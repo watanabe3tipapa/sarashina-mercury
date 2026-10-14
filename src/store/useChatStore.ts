@@ -9,8 +9,6 @@ import {
 
 export type { Conversation, StoredMessage }
 
-let initStarted = false
-
 function newConversation(model: string): Conversation {
   const now = Date.now()
   return {
@@ -33,6 +31,7 @@ interface ChatState {
   conversations: Conversation[]
   currentId: string | null
   ready: boolean
+  initialized: boolean
   init: (model: string) => Promise<void>
   newChat: (model: string) => void
   select: (id: string) => void
@@ -45,10 +44,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
   conversations: [],
   currentId: null,
   ready: false,
+  initialized: false,
 
   init: async (model) => {
-    if (initStarted) return
-    initStarted = true
+    if (get().initialized) return
+    set({ initialized: true })
 
     const conversations = await getAllConversations()
     if (conversations.length > 0) {

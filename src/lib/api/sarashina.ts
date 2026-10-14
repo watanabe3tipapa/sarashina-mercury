@@ -59,6 +59,18 @@ export interface GuardResult {
 const RETRY_STATUSES = new Set([403, 429])
 const MAX_RETRIES = 3
 
+async function readError(res: Response): Promise<string> {
+  const text = await res.text()
+  try {
+    const data = JSON.parse(text)
+    const message = data?.error?.message ?? data?.message
+    if (typeof message === "string" && message) return message
+  } catch {
+    // Not JSON; fall back to the raw body.
+  }
+  return text
+}
+
 async function postJSON(
   path: string,
   apiKey: string,
@@ -79,7 +91,7 @@ async function postJSON(
     if (!RETRY_STATUSES.has(res.status) || attempt === MAX_RETRIES) break
     await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
   }
-  throw new Error(await last!.text())
+  throw new Error(await readError(last!))
 }
 
 export async function* streamChat(
@@ -116,8 +128,10 @@ export async function* streamChat(
           if (content) {
             yield { content }
           }
-        } catch {
-          // ignore parse errors
+        } catch (e) {
+          if (import.meta.env.DEV) {
+            console.warn("Failed to parse SSE chunk:", trimmed, e)
+          }
         }
       }
     }
@@ -177,12 +191,20 @@ export async function guard(apiKey: string, text: string): Promise<GuardResult> 
   })
   const data = await res.json()
   const raw: string = data.choices?.[0]?.message?.content ?? ""
-  const [verdict, categoryList] = raw.split("\n")
+  // The model returns a verdict line ("安全" or "有害") optionally followed by
+  // one or more T1–T12 category codes (e.g. "有害\nT8").
+  const [verdict, ...rest] = raw.split("\n")
+  const categories = [
+    ...new Set(
+      Array.from(
+        rest.join(" ").matchAll(/\bT(?:1[0-2]|[1-9])\b/gi),
+        (m) => m[0].toUpperCase()
+      )
+    ),
+  ]
   return {
     safe: verdict?.trim() === "安全",
-    categories: categoryList
-      ? categoryList.split(",").map((c) => c.trim()).filter(Boolean)
-      : [],
+    categories,
     raw,
   }
 }

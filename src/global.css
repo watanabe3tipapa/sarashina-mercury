@@ -1,5 +1,103 @@
 @import "tailwindcss";
 
+/*
+ * Theming
+ * -------
+ * Tailwind v4 emits its palette as CSS variables (`--color-slate-950`, …) that
+ * the utilities reference via `var(...)`. Rather than rewrite every class, we
+ * remap those variables per theme. Dark is the default (current values); the
+ * light theme below inverts the slate scale and re-tints the accent colours so
+ * the existing `bg-slate-*` / `text-*` utilities stay readable on a light
+ * background.
+ *
+ * These rules are intentionally unlayered: unlayered declarations outrank
+ * Tailwind's `@layer theme`, so the overrides win without `!important`.
+ */
+
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --md-link: #60a5fa;
+  --md-code-bg: rgba(148, 163, 184, 0.2);
+  --md-code-fg: inherit;
+  --md-pre-bg: #0f172a;
+  --md-pre-border: #1e293b;
+  --md-quote-border: #475569;
+  --md-quote-fg: #cbd5e1;
+  --md-table-border: #334155;
+  --md-th-bg: #1e293b;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Slate scale inverted for light surfaces. */
+  --color-slate-100: #0f172a;
+  --color-slate-200: #1e293b;
+  --color-slate-300: #334155;
+  --color-slate-400: #64748b;
+  --color-slate-500: #64748b;
+  --color-slate-600: #cbd5e1;
+  --color-slate-700: #e2e8f0;
+  --color-slate-800: #f1f5f9;
+  --color-slate-900: #ffffff;
+  --color-slate-950: #f8fafc;
+
+  /* Accent tints used for status panels / badges (dark → light). */
+  --color-red-200: #991b1b;
+  --color-red-400: #b91c1c;
+  --color-red-700: #fca5a5;
+  --color-red-800: #fecaca;
+  --color-red-900: #fee2e2;
+  --color-red-950: #fef2f2;
+
+  --color-amber-100: #78350f;
+  --color-amber-200: #92400e;
+  --color-amber-300: #b45309;
+  --color-amber-700: #fcd34d;
+  --color-amber-800: #fde68a;
+  --color-amber-900: #fef3c7;
+  --color-amber-950: #fffbeb;
+
+  --color-emerald-200: #065f46;
+  --color-emerald-300: #047857;
+  --color-emerald-700: #6ee7b7;
+  --color-emerald-900: #d1fae5;
+  --color-emerald-950: #ecfdf5;
+
+  --color-yellow-300: #ca8a04;
+  --color-yellow-400: #a16207;
+  --color-yellow-800: #fde68a;
+
+  --color-blue-400: #1d4ed8;
+
+  --md-link: #2563eb;
+  --md-code-bg: rgba(100, 116, 139, 0.15);
+  --md-pre-bg: #f1f5f9;
+  --md-pre-border: #e2e8f0;
+  --md-quote-border: #cbd5e1;
+  --md-quote-fg: #475569;
+  --md-table-border: #e2e8f0;
+  --md-th-bg: #f1f5f9;
+}
+
+/* `text-slate-950` sits on the bright amber button; keep it dark in light mode. */
+:root[data-theme="light"] .text-slate-950 {
+  color: #451a03;
+}
+
+/* Disabled primary buttons become slate-200 in light mode; deepen them so the
+   white label stays legible. */
+:root[data-theme="light"] .disabled\:bg-slate-700:disabled {
+  background-color: #64748b;
+}
+
+body {
+  background-color: var(--color-slate-950);
+  color: var(--color-slate-100);
+}
+
 .markdown {
   line-height: 1.75;
   word-break: break-word;
@@ -45,18 +143,18 @@
   margin: 0.25em 0;
 }
 .markdown a {
-  color: #60a5fa;
+  color: var(--md-link);
   text-decoration: underline;
 }
 .markdown code {
-  background: rgba(148, 163, 184, 0.2);
+  background: var(--md-code-bg);
   border-radius: 0.25rem;
   padding: 0.1em 0.35em;
   font-size: 0.9em;
 }
 .markdown pre {
-  background: #0f172a;
-  border: 1px solid #1e293b;
+  background: var(--md-pre-bg);
+  border: 1px solid var(--md-pre-border);
   border-radius: 0.5rem;
   margin: 0.9em 0;
   padding: 0.9em 1em;
@@ -68,8 +166,8 @@
   font-size: 0.875em;
 }
 .markdown blockquote {
-  border-left: 3px solid #475569;
-  color: #cbd5e1;
+  border-left: 3px solid var(--md-quote-border);
+  color: var(--md-quote-fg);
   margin: 0.9em 0;
   padding-left: 1em;
 }
@@ -80,17 +178,17 @@
 }
 .markdown th,
 .markdown td {
-  border: 1px solid #334155;
+  border: 1px solid var(--md-table-border);
   padding: 0.4em 0.6em;
   text-align: left;
 }
 .markdown th {
-  background: #1e293b;
+  background: var(--md-th-bg);
   font-weight: 600;
 }
 .markdown hr {
   border: 0;
-  border-top: 1px solid #334155;
+  border-top: 1px solid var(--md-table-border);
   margin: 1.25em 0;
 }
 .markdown img {

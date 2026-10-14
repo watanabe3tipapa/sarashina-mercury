@@ -55,8 +55,8 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 - **Chat** — switchable streaming chat with `sarashina3-mini` / `sarashina3-nano`, rendering Markdown + GFM
 - **Translation editor** — a Lexical-based parallel editor. Choose direction (JA→EN / EN→JA) and tone (`business-formal` / `business-casual` / `technical` / `marketing`), hover a paragraph to pair it across panes, and edit, copy, or swap the translation in place
 - **RAG** — Embeddings + Rerank over a query and documents, showing relevance-ranked results with their sources
-- **Guard** — displays the safety classification of the input text
-- **Settings** — save and switch the API key and default model in the browser
+- **Guard** — classifies the input text for safety, explains the reason per category, and offers a "try another expression" recovery path instead of a blunt block
+- **Settings** — save and switch the API key and default model in the browser; the API key can optionally be kept session-only (`sessionStorage`). Choose system / light / dark theme (follows `prefers-color-scheme`)
 
 ### Architecture
 
@@ -188,17 +188,21 @@ src/
 ├── main.tsx                      # Entry point
 ├── features/
 │   ├── chat/ChatPage.tsx          # Chat (streaming)
-│   ├── settings/SettingsPage.tsx  # API key / model settings
+│   ├── settings/SettingsPage.tsx  # API key / model / theme settings
 │   └── tools/
 │       ├── TranslatePage.tsx      # Translation editor (Lexical, tone control)
 │       ├── RAGPage.tsx            # Rerank + chat (answers with citations)
-│       └── GuardPage.tsx          # Safety classification
+│       └── GuardPage.tsx          # Safety classification with a recovery path
 ├── components/
 │   ├── SourceCitation.tsx         # Citation card (relevance bar, scroll)
+│   ├── GuardNotice.tsx            # Gentle Guard warning (category reasons, rewrite tips)
 │   └── editor/EditorPane.tsx      # Lexical editor (parallel translation)
+├── hooks/
+│   └── useThemeSync.ts            # Applies the theme and follows the OS setting
 ├── lib/
 │   ├── api/sarashina.ts           # Sarashina API client
 │   ├── db/conversations.ts        # Conversation persistence (IndexedDB)
+│   ├── theme.ts                   # Theme resolution (system / light / dark)
 │   ├── tokens.ts                  # Token estimation
 │   └── utils.ts                   # Class name utility (cn)
 └── store/
@@ -215,7 +219,15 @@ worker/                            # Cloudflare Worker proxy for CORS
 
 ## Roadmap
 
-### v0.1.2 (current)
+### v0.1.3 (in development)
+
+- [x] Guard recovery UI (per-category reasons, rewrite tips, re-check)
+- [x] Optional session-only API key storage (`sessionStorage`)
+- [x] Light theme (follows `prefers-color-scheme`; system / light / dark)
+- [x] Unit tests with Vitest + React Testing Library (API client, stores, UI)
+- [ ] Real-time token / cost estimation
+
+### v0.1.2 (released)
 
 - [x] Translation editor (Lexical-based parallel translation, paragraph hover sync, in-place editing)
 - [x] Code-split tool pages (keep Lexical out of the initial bundle)
