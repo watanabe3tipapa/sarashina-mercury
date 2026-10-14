@@ -32,6 +32,7 @@ interface ChatState {
   currentId: string | null
   ready: boolean
   initialized: boolean
+  storageError: string | null
   init: (model: string) => Promise<void>
   newChat: (model: string) => void
   select: (id: string) => void
@@ -45,25 +46,39 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentId: null,
   ready: false,
   initialized: false,
+  storageError: null,
 
   init: async (model) => {
     if (get().initialized) return
     set({ initialized: true })
 
-    const conversations = await getAllConversations()
-    if (conversations.length > 0) {
-      set({ conversations, currentId: conversations[0].id, ready: true })
-      return
-    }
+    try {
+      const conversations = await getAllConversations()
+      if (conversations.length > 0) {
+        set({ conversations, currentId: conversations[0].id, ready: true })
+        return
+      }
 
-    const conv = newConversation(model)
-    await putConversation(conv)
-    set({ conversations: [conv], currentId: conv.id, ready: true })
+      const conv = newConversation(model)
+      await putConversation(conv)
+      set({ conversations: [conv], currentId: conv.id, ready: true })
+    } catch (error) {
+      // Persistent storage can be unavailable (private mode, blocked cookies,
+      // quota exceeded). Fall back to an in-memory session so the app still
+      // works, and surface a notice instead of hanging on an empty screen.
+      const conv = newConversation(model)
+      set({
+        conversations: [conv],
+        currentId: conv.id,
+        ready: true,
+        storageError: error instanceof Error ? error.message : String(error),
+      })
+    }
   },
 
   newChat: (model) => {
     const conv = newConversation(model)
-    void putConversation(conv)
+    void putConversation(conv).catch(() => {})
     set((state) => ({
       conversations: [conv, ...state.conversations],
       currentId: conv.id,
@@ -73,11 +88,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   select: (id) => set({ currentId: id }),
 
   remove: async (id, model) => {
-    await deleteConversation(id)
+    try {
+      await deleteConversation(id)
+    } catch {
+      // Best-effort: keep the in-memory list consistent even if the delete fails.
+    }
     const remaining = get().conversations.filter((c) => c.id !== id)
     if (remaining.length === 0) {
       const conv = newConversation(model)
-      await putConversation(conv)
+      void putConversation(conv).catch(() => {})
       set({ conversations: [conv], currentId: conv.id })
       return
     }
@@ -102,6 +121,11 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   persist: async (id) => {
     const conv = get().conversations.find((c) => c.id === id)
-    if (conv) await putConversation(conv)
+    if (!conv) return
+    try {
+      await putConversation(conv)
+    } catch {
+      // Best-effort: the conversation stays in memory for this session.
+    }
   },
 }))

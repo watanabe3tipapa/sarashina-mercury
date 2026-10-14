@@ -15,11 +15,15 @@ export default function SettingsPage() {
     systemPrompt,
     sessionOnlyKey,
     theme,
+    guardInput,
+    guardOutput,
     setApiKey,
     setModel,
     setSystemPrompt,
     setSessionOnlyKey,
     setTheme,
+    setGuardInput,
+    setGuardOutput,
   } = useSettingsStore()
 
   return (
@@ -129,6 +133,50 @@ export default function SettingsPage() {
                   {option.label}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div>
+            <h2 className="text-lg font-semibold mb-2">Guard（安全性チェック）</h2>
+            <p className="text-sm text-slate-400 mb-4">
+              送信前・応答後に Sarashina Guard で自動チェックします。有効にすると API
+              呼び出しが増えるため、応答時間と利用量が増加します。
+            </p>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900 p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={guardInput}
+                  onChange={(e) => setGuardInput(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-blue-500"
+                />
+                <span className="text-sm">
+                  <span className="font-medium text-slate-200">
+                    送信前にチェックする
+                  </span>
+                  <span className="mt-1 block text-slate-400">
+                    メッセージを送る前に Guard
+                    で判定し、問題がある場合は送信前に確認を促します。
+                  </span>
+                </span>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-lg border border-slate-700 bg-slate-900 p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={guardOutput}
+                  onChange={(e) => setGuardOutput(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 accent-blue-500"
+                />
+                <span className="text-sm">
+                  <span className="font-medium text-slate-200">
+                    応答後にチェックする
+                  </span>
+                  <span className="mt-1 block text-slate-400">
+                    AI の応答を受け取ったあとに Guard で判定し、結果を表示します。
+                  </span>
+                </span>
+              </label>
             </div>
           </div>
         </div>

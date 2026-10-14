@@ -47,6 +47,8 @@ interface SettingsState {
   systemPrompt: string
   sessionOnlyKey: boolean
   theme: ThemePreference
+  guardInput: boolean
+  guardOutput: boolean
   pricePerMillion: Record<string, number>
   budgetYen: number
   setApiKey: (key: string) => void
@@ -54,6 +56,8 @@ interface SettingsState {
   setSystemPrompt: (prompt: string) => void
   setSessionOnlyKey: (sessionOnly: boolean) => void
   setTheme: (theme: ThemePreference) => void
+  setGuardInput: (enabled: boolean) => void
+  setGuardOutput: (enabled: boolean) => void
   setPricePerMillion: (model: string, yen: number) => void
   setBudgetYen: (yen: number) => void
 }
@@ -66,6 +70,8 @@ export const useSettingsStore = create<SettingsState>()(
       systemPrompt: "",
       sessionOnlyKey: false,
       theme: "system",
+      guardInput: false,
+      guardOutput: false,
       pricePerMillion: DEFAULT_PRICES_YEN_PER_MILLION,
       budgetYen: 0,
       setApiKey: (apiKey) => set({ apiKey }),
@@ -73,6 +79,8 @@ export const useSettingsStore = create<SettingsState>()(
       setSystemPrompt: (systemPrompt) => set({ systemPrompt }),
       setSessionOnlyKey: (sessionOnlyKey) => set({ sessionOnlyKey }),
       setTheme: (theme) => set({ theme }),
+      setGuardInput: (guardInput) => set({ guardInput }),
+      setGuardOutput: (guardOutput) => set({ guardOutput }),
       setPricePerMillion: (model, yen) =>
         set((s) => ({ pricePerMillion: { ...s.pricePerMillion, [model]: yen } })),
       setBudgetYen: (budgetYen) => set({ budgetYen }),

@@ -54,6 +54,15 @@ export interface GuardResult {
   raw: string
 }
 
+// fetch aborts with a DOMException named "AbortError"; normalise detection so
+// callers can distinguish a user-initiated stop from a real failure.
+export function isAbortError(error: unknown): boolean {
+  return (
+    (error instanceof DOMException || error instanceof Error) &&
+    error.name === "AbortError"
+  )
+}
+
 // 403: the Worker may have executed outside Japan (API is geo-restricted).
 // 429: rate limit. Retrying re-rolls the Cloudflare edge placement.
 const RETRY_STATUSES = new Set([403, 429])
@@ -71,10 +80,29 @@ async function readError(res: Response): Promise<string> {
   return text
 }
 
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(signal.reason)
+      return
+    }
+    const onAbort = () => {
+      clearTimeout(timer)
+      reject(signal?.reason)
+    }
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort)
+      resolve()
+    }, ms)
+    signal?.addEventListener("abort", onAbort, { once: true })
+  })
+}
+
 async function postJSON(
   path: string,
   apiKey: string,
-  body: unknown
+  body: unknown,
+  signal?: AbortSignal
 ): Promise<Response> {
   let last: Response | undefined
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
@@ -85,23 +113,30 @@ async function postJSON(
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify(body),
+      signal,
     })
     if (res.ok) return res
     last = res
     if (!RETRY_STATUSES.has(res.status) || attempt === MAX_RETRIES) break
-    await new Promise((resolve) => setTimeout(resolve, 400 * (attempt + 1)))
+    await sleep(400 * (attempt + 1), signal)
   }
   throw new Error(await readError(last!))
 }
 
 export async function* streamChat(
   apiKey: string,
-  request: ChatCompletionRequest
+  request: ChatCompletionRequest,
+  signal?: AbortSignal
 ): AsyncGenerator<{ content: string }> {
-  const res = await postJSON("/chat/completions", apiKey, {
-    ...request,
-    stream: true,
-  })
+  const res = await postJSON(
+    "/chat/completions",
+    apiKey,
+    {
+      ...request,
+      stream: true,
+    },
+    signal
+  )
 
   const reader = res.body?.getReader()
   if (!reader) throw new Error("No stream")
@@ -144,51 +179,78 @@ export async function translate(
     text: string
     direction: "ja-en" | "en-ja"
     tone?: string
-  }
+  },
+  signal?: AbortSignal
 ): Promise<{ translated_text: string }> {
   const [source_lang, target_lang] =
     params.direction === "ja-en" ? ["ja", "en"] : ["en", "ja"]
 
-  const res = await postJSON("/translate", apiKey, {
-    text: params.text,
-    source_lang,
-    target_lang,
-    tone: params.tone || "business-casual",
-  })
+  const res = await postJSON(
+    "/translate",
+    apiKey,
+    {
+      text: params.text,
+      source_lang,
+      target_lang,
+      tone: params.tone || "business-casual",
+    },
+    signal
+  )
   return res.json()
 }
 
 export async function embedText(
   apiKey: string,
   text: string,
-  taskType: EmbeddingTaskType = "RETRIEVAL_QUERY"
+  taskType: EmbeddingTaskType = "RETRIEVAL_QUERY",
+  signal?: AbortSignal
 ): Promise<EmbeddingResponse> {
-  const res = await postJSON("/embeddings", apiKey, {
-    model: "sarashina3-embedding",
-    input: text,
-    task_type: taskType,
-  })
+  const res = await postJSON(
+    "/embeddings",
+    apiKey,
+    {
+      model: "sarashina3-embedding",
+      input: text,
+      task_type: taskType,
+    },
+    signal
+  )
   return res.json()
 }
 
 export async function rerank(
   apiKey: string,
-  params: { query: string; documents: string[]; taskType?: RerankTaskType }
+  params: { query: string; documents: string[]; taskType?: RerankTaskType },
+  signal?: AbortSignal
 ): Promise<RerankResponse> {
-  const res = await postJSON("/rerank", apiKey, {
-    model: "sarashina3-rerank",
-    query: params.query,
-    documents: params.documents,
-    task_type: params.taskType ?? "GENERAL_RETRIEVAL",
-  })
+  const res = await postJSON(
+    "/rerank",
+    apiKey,
+    {
+      model: "sarashina3-rerank",
+      query: params.query,
+      documents: params.documents,
+      task_type: params.taskType ?? "GENERAL_RETRIEVAL",
+    },
+    signal
+  )
   return res.json()
 }
 
-export async function guard(apiKey: string, text: string): Promise<GuardResult> {
-  const res = await postJSON("/chat/completions", apiKey, {
-    model: "sarashina3-guard",
-    messages: [{ role: "user", content: text }],
-  })
+export async function guard(
+  apiKey: string,
+  text: string,
+  signal?: AbortSignal
+): Promise<GuardResult> {
+  const res = await postJSON(
+    "/chat/completions",
+    apiKey,
+    {
+      model: "sarashina3-guard",
+      messages: [{ role: "user", content: text }],
+    },
+    signal
+  )
   const data = await res.json()
   const raw: string = data.choices?.[0]?.message?.content ?? ""
   // The model returns a verdict line ("安全" or "有害") optionally followed by

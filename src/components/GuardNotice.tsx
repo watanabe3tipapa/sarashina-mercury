@@ -11,6 +11,7 @@ import {
   PencilLine,
   RefreshCw,
   Scale,
+  Send,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
@@ -104,24 +105,33 @@ function describeCategory(raw: string): CategoryMeta & { code: string } {
 
 interface GuardNoticeProps {
   result: GuardResult
-  onRevise: () => void
-  onRetry: () => void
+  onRevise?: () => void
+  onRetry?: () => void
+  onProceed?: () => void
+  proceedLabel?: string
   retrying?: boolean
+  compact?: boolean
 }
 
 export default function GuardNotice({
   result,
   onRevise,
   onRetry,
+  onProceed,
+  proceedLabel = "このまま送信",
   retrying = false,
+  compact = false,
 }: GuardNoticeProps) {
   const harmful = !result.safe
   const categories = result.categories.map(describeCategory)
+  const showActions = harmful && (onRevise || onRetry || onProceed)
 
   return (
     <section
       aria-live="polite"
-      className={`rounded-lg border p-4 space-y-4 ${
+      className={`rounded-lg border space-y-4 ${
+        compact ? "p-3" : "p-4"
+      } ${
         harmful
           ? "border-amber-700/60 bg-amber-950/40"
           : "border-emerald-700/60 bg-emerald-950/40"
@@ -183,29 +193,43 @@ export default function GuardNotice({
         </ul>
       )}
 
-      {harmful && (
+      {showActions && (
         <div className="flex flex-wrap items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={onRevise}
-            className="flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
-          >
-            <PencilLine size={16} />
-            別の表現を試す
-          </button>
-          <button
-            type="button"
-            onClick={onRetry}
-            disabled={retrying}
-            className="flex items-center gap-2 rounded border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <RefreshCw size={16} className={retrying ? "animate-spin" : ""} />
-            {retrying ? "再判定中..." : "もう一度判定"}
-          </button>
+          {onRevise && (
+            <button
+              type="button"
+              onClick={onRevise}
+              className="flex items-center gap-2 rounded bg-amber-500 px-4 py-2 text-sm font-medium text-slate-950 hover:bg-amber-400"
+            >
+              <PencilLine size={16} />
+              別の表現を試す
+            </button>
+          )}
+          {onRetry && (
+            <button
+              type="button"
+              onClick={onRetry}
+              disabled={retrying}
+              className="flex items-center gap-2 rounded border border-slate-600 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshCw size={16} className={retrying ? "animate-spin" : ""} />
+              {retrying ? "再判定中..." : "もう一度判定"}
+            </button>
+          )}
+          {onProceed && (
+            <button
+              type="button"
+              onClick={onProceed}
+              className="flex items-center gap-2 rounded border border-amber-700 px-3 py-2 text-sm text-amber-200 hover:bg-amber-900/40"
+            >
+              <Send size={16} />
+              {proceedLabel}
+            </button>
+          )}
         </div>
       )}
 
-      {harmful && (
+      {harmful && !compact && (
         <details className="rounded border border-slate-700/60 bg-slate-950/40 p-3 text-sm text-slate-300">
           <summary className="flex cursor-pointer items-center gap-2 text-slate-200">
             <Sparkles size={15} className="text-amber-300" />

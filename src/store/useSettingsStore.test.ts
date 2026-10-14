@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { selectiveStorage } from './useSettingsStore'
+import { selectiveStorage, useSettingsStore } from './useSettingsStore'
 
 const NAME = 'test-settings'
 const SESSION_API_KEY = 'sarashina-session-api-key'
@@ -64,5 +64,26 @@ describe('selectiveStorage', () => {
 
     expect(localStorage.getItem(NAME)).toBeNull()
     expect(sessionStorage.getItem(SESSION_API_KEY)).toBeNull()
+  })
+})
+
+describe('guard settings', () => {
+  beforeEach(() => {
+    useSettingsStore.setState({ guardInput: false, guardOutput: false })
+  })
+
+  it('defaults both guard checks to off', () => {
+    const state = useSettingsStore.getState()
+    expect(state.guardInput).toBe(false)
+    expect(state.guardOutput).toBe(false)
+  })
+
+  it('toggles the guard checks independently', () => {
+    useSettingsStore.getState().setGuardInput(true)
+    expect(useSettingsStore.getState().guardInput).toBe(true)
+    expect(useSettingsStore.getState().guardOutput).toBe(false)
+
+    useSettingsStore.getState().setGuardOutput(true)
+    expect(useSettingsStore.getState().guardOutput).toBe(true)
   })
 })

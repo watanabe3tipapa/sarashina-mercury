@@ -2,7 +2,14 @@ import { useState, useRef, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { useSettingsStore } from "@/store/useSettingsStore"
 import { useChatStore, type StoredMessage } from "@/store/useChatStore"
-import { streamChat, type ChatMessage } from "@/lib/api/sarashina"
+import {
+  streamChat,
+  guard,
+  isAbortError,
+  type ChatMessage,
+  type GuardResult,
+} from "@/lib/api/sarashina"
+import GuardNotice from "@/components/GuardNotice"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import {
@@ -13,16 +20,20 @@ import {
   Settings,
   Plus,
   Trash2,
+  Loader2,
+  Square,
 } from "lucide-react"
 
 const EMPTY_MESSAGES: StoredMessage[] = []
 
 export default function ChatPage() {
-  const { apiKey, model, systemPrompt } = useSettingsStore()
+  const { apiKey, model, systemPrompt, guardInput, guardOutput } =
+    useSettingsStore()
   const {
     conversations,
     currentId,
     ready,
+    storageError,
     init,
     newChat,
     select,
@@ -32,10 +43,27 @@ export default function ChatPage() {
   } = useChatStore()
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [guardChecking, setGuardChecking] = useState(false)
+  const [blockedInput, setBlockedInput] = useState<{
+    text: string
+    result: GuardResult
+  } | null>(null)
+  const [outputGuards, setOutputGuards] = useState<Record<number, GuardResult>>(
+    {}
+  )
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const current = conversations.find((c) => c.id === currentId)
   const messages = current ? current.messages : EMPTY_MESSAGES
+
+  const [guardedConversationId, setGuardedConversationId] = useState(currentId)
+  if (guardedConversationId !== currentId) {
+    setGuardedConversationId(currentId)
+    setBlockedInput(null)
+    setOutputGuards({})
+  }
 
   useEffect(() => {
     void init(model)
@@ -60,15 +88,16 @@ export default function ChatPage() {
     }
   }
 
-  const handleSend = async () => {
-    if (!input.trim() || !apiKey || isLoading || !current) return
+  const performSend = async (text: string) => {
+    if (!apiKey || !current) return
 
     const conversationId = current.id
-    const userMessage: StoredMessage = { role: "user", content: input }
-    const history = [...current.messages, userMessage]
+    const userMessage: StoredMessage = { role: "user", content: text }
+    const history = [...latestMessages(conversationId), userMessage]
 
     setMessages(conversationId, [...history, { role: "assistant", content: "" }])
     setInput("")
+    setBlockedInput(null)
     setIsLoading(true)
     await persist(conversationId)
 
@@ -78,26 +107,98 @@ export default function ChatPage() {
     }
     requestMessages.push(...history)
 
+    const controller = new AbortController()
+    abortRef.current = controller
+
     try {
-      for await (const chunk of streamChat(apiKey, {
-        model,
-        messages: requestMessages,
-      })) {
+      for await (const chunk of streamChat(
+        apiKey,
+        { model, messages: requestMessages },
+        controller.signal
+      )) {
         updateLastAssistant(conversationId, (content) => content + chunk.content)
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "不明なエラー"
-      updateLastAssistant(conversationId, () => `エラー: ${message}`)
+      if (isAbortError(error)) {
+        const msgs = latestMessages(conversationId)
+        const last = msgs[msgs.length - 1]
+        if (last?.role === "assistant" && !last.content.trim()) {
+          updateLastAssistant(conversationId, () => "（停止しました）")
+        }
+      } else {
+        const message = error instanceof Error ? error.message : "不明なエラー"
+        updateLastAssistant(conversationId, () => `エラー: ${message}`)
+      }
     } finally {
       setIsLoading(false)
+      abortRef.current = null
       await persist(conversationId)
     }
+
+    if (!controller.signal.aborted && guardOutput) {
+      const msgs = latestMessages(conversationId)
+      const lastIndex = msgs.length - 1
+      const content = msgs[lastIndex]?.content?.trim()
+      if (content && !content.startsWith("エラー:")) {
+        try {
+          const result = await guard(apiKey, content)
+          if (!result.safe) {
+            setOutputGuards((prev) => ({ ...prev, [lastIndex]: result }))
+          }
+        } catch {
+          // 出力後の Guard は補助的なので失敗しても無視する
+        }
+      }
+    }
+  }
+
+  const handleSend = async () => {
+    const text = input.trim()
+    if (!text || !apiKey || isLoading || guardChecking || !current) return
+
+    if (guardInput) {
+      setGuardChecking(true)
+      try {
+        const result = await guard(apiKey, text)
+        if (!result.safe) {
+          setBlockedInput({ text, result })
+          return
+        }
+      } catch {
+        // Guard が失敗した場合は送信を優先する（補助機能）
+      } finally {
+        setGuardChecking(false)
+      }
+    }
+
+    await performSend(text)
+  }
+
+  const retryInputGuard = async () => {
+    if (!apiKey || !blockedInput) return
+    setGuardChecking(true)
+    try {
+      const result = await guard(apiKey, blockedInput.text)
+      if (result.safe) {
+        await performSend(blockedInput.text)
+      } else {
+        setBlockedInput({ text: blockedInput.text, result })
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGuardChecking(false)
+    }
+  }
+
+  const handleStop = () => {
+    abortRef.current?.abort()
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      void handleSend()
     }
   }
 
@@ -209,6 +310,12 @@ export default function ChatPage() {
               API キーが未設定です。設定から登録してください。
             </div>
           )}
+          {storageError && (
+            <div className="p-3 m-4 text-sm text-amber-300 border border-amber-800 rounded bg-amber-950/40">
+              履歴の保存に失敗しました。このセッションの会話は保存されません（プライベートモードや
+              IndexedDB が無効な環境ではこの表示が出ます）。
+            </div>
+          )}
           {ready && messages.length === 0 && (
             <div className="p-4 text-center text-slate-500 text-sm">
               メッセージを入力して会話を始めましょう。
@@ -216,27 +323,33 @@ export default function ChatPage() {
           )}
           <div className="max-w-4xl mx-auto p-4 space-y-6">
             {messages.map((message, i) => (
-              <div
-                key={i}
-                className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
-              >
+              <div key={i}>
                 <div
-                  className={`max-w-[85%] rounded-lg p-4 ${
-                    message.role === "user"
-                      ? "bg-blue-600 text-white"
-                      : "bg-slate-800 text-slate-100"
-                  }`}
+                  className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  {message.role === "assistant" ? (
-                    <div className="markdown text-sm">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {message.content}
-                      </ReactMarkdown>
-                    </div>
-                  ) : (
-                    <div className="whitespace-pre-wrap">{message.content}</div>
-                  )}
+                  <div
+                    className={`max-w-[85%] rounded-lg p-4 ${
+                      message.role === "user"
+                        ? "bg-blue-600 text-white"
+                        : "bg-slate-800 text-slate-100"
+                    }`}
+                  >
+                    {message.role === "assistant" ? (
+                      <div className="markdown text-sm">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    ) : (
+                      <div className="whitespace-pre-wrap">{message.content}</div>
+                    )}
+                  </div>
                 </div>
+                {outputGuards[i] && (
+                  <div className="mt-2 max-w-[85%]">
+                    <GuardNotice result={outputGuards[i]} compact />
+                  </div>
+                )}
               </div>
             ))}
             {isLoading && messages[messages.length - 1]?.role === "assistant" && (
@@ -255,8 +368,21 @@ export default function ChatPage() {
         </main>
 
         <div className="border-t border-slate-800 p-4">
+          {blockedInput && (
+            <div className="max-w-4xl mx-auto mb-3">
+              <GuardNotice
+                result={blockedInput.result}
+                onRevise={() => textareaRef.current?.focus()}
+                onRetry={() => void retryInputGuard()}
+                onProceed={() => void performSend(blockedInput.text)}
+                proceedLabel="このまま送信"
+                retrying={guardChecking}
+              />
+            </div>
+          )}
           <div className="max-w-4xl mx-auto flex gap-2">
             <textarea
+              ref={textareaRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -265,13 +391,24 @@ export default function ChatPage() {
               rows={2}
               className="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-3 text-slate-100 placeholder-slate-500 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <button
-              onClick={handleSend}
-              disabled={!apiKey || !input.trim() || isLoading}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg px-6 py-2 text-white font-medium"
-            >
-              送信
-            </button>
+            {isLoading ? (
+              <button
+                onClick={handleStop}
+                className="flex items-center gap-2 bg-red-600 hover:bg-red-700 rounded-lg px-6 py-2 text-white font-medium"
+              >
+                <Square size={16} />
+                停止
+              </button>
+            ) : (
+              <button
+                onClick={handleSend}
+                disabled={!apiKey || !input.trim() || guardChecking}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed rounded-lg px-6 py-2 text-white font-medium"
+              >
+                {guardChecking && <Loader2 size={16} className="animate-spin" />}
+                {guardChecking ? "確認中..." : "送信"}
+              </button>
+            )}
           </div>
         </div>
       </div>

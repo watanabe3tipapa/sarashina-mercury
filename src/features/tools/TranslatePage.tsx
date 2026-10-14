@@ -1,8 +1,21 @@
 import { useRef, useState } from "react"
 import { Link } from "react-router-dom"
-import { ArrowLeftRight, Check, Copy, Loader2, Trash2 } from "lucide-react"
+import {
+  ArrowLeftRight,
+  Check,
+  Copy,
+  Loader2,
+  Square,
+  Trash2,
+} from "lucide-react"
 import { useSettingsStore } from "@/store/useSettingsStore"
-import { translate } from "@/lib/api/sarashina"
+import {
+  translate,
+  guard,
+  isAbortError,
+  type GuardResult,
+} from "@/lib/api/sarashina"
+import GuardNotice from "@/components/GuardNotice"
 import { EditorPane, type EditorPaneHandle } from "@/components/editor/EditorPane"
 
 type Direction = "ja-en" | "en-ja"
@@ -15,45 +28,117 @@ const TONES = [
 ] as const
 
 export default function TranslatePage() {
-  const { apiKey } = useSettingsStore()
+  const { apiKey, guardInput, guardOutput } = useSettingsStore()
   const sourceRef = useRef<EditorPaneHandle>(null)
   const targetRef = useRef<EditorPaneHandle>(null)
+  const abortRef = useRef<AbortController | null>(null)
   const [direction, setDirection] = useState<Direction>("ja-en")
   const [tone, setTone] = useState<string>("business-casual")
   const [loading, setLoading] = useState(false)
+  const [guardChecking, setGuardChecking] = useState(false)
   const [error, setError] = useState("")
   const [copied, setCopied] = useState(false)
   const [syncIndex, setSyncIndex] = useState<number | null>(null)
+  const [blocked, setBlocked] = useState<{
+    text: string
+    result: GuardResult
+  } | null>(null)
+  const [outputGuard, setOutputGuard] = useState<GuardResult | null>(null)
 
   const sourceLang = direction === "ja-en" ? "日本語" : "英語"
   const targetLang = direction === "ja-en" ? "英語" : "日本語"
 
+  const performTranslate = async (text: string) => {
+    if (!apiKey) return
+
+    setLoading(true)
+    setError("")
+    setCopied(false)
+    setSyncIndex(null)
+    setBlocked(null)
+    setOutputGuard(null)
+
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    try {
+      const res = await translate(
+        apiKey,
+        { text, direction, tone },
+        controller.signal
+      )
+      const out = (res.translated_text ?? "").trim()
+      const outParagraphs = out
+        .split(/\n+/)
+        .map((p) => p.trim())
+        .filter(Boolean)
+      targetRef.current?.setParagraphs(
+        outParagraphs.length ? outParagraphs : [""]
+      )
+
+      if (guardOutput && out) {
+        try {
+          const result = await guard(apiKey, out, controller.signal)
+          if (!result.safe) setOutputGuard(result)
+        } catch {
+          // 出力後の Guard は補助的なので失敗しても無視する
+        }
+      }
+    } catch (e) {
+      if (!isAbortError(e)) {
+        setError(e instanceof Error ? e.message : String(e))
+      }
+    } finally {
+      setLoading(false)
+      abortRef.current = null
+    }
+  }
+
   const handleTranslate = async () => {
-    if (loading) return
+    if (loading || guardChecking) return
     const paragraphs = (sourceRef.current?.getParagraphs() ?? [])
       .map((p) => p.trim())
       .filter(Boolean)
     const text = paragraphs.join("\n\n")
     if (!text || !apiKey) return
 
-    setLoading(true)
-    setError("")
-    setCopied(false)
-    setSyncIndex(null)
-
-    try {
-      const res = await translate(apiKey, { text, direction, tone })
-      const out = (res.translated_text ?? "").trim()
-      const outParagraphs = out
-        .split(/\n+/)
-        .map((p) => p.trim())
-        .filter(Boolean)
-      targetRef.current?.setParagraphs(outParagraphs.length ? outParagraphs : [""])
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
-    } finally {
-      setLoading(false)
+    if (guardInput) {
+      setGuardChecking(true)
+      try {
+        const result = await guard(apiKey, text)
+        if (!result.safe) {
+          setBlocked({ text, result })
+          return
+        }
+      } catch {
+        // Guard が失敗した場合は翻訳を優先する（補助機能）
+      } finally {
+        setGuardChecking(false)
+      }
     }
+
+    await performTranslate(text)
+  }
+
+  const retryGuard = async () => {
+    if (!apiKey || !blocked) return
+    setGuardChecking(true)
+    try {
+      const result = await guard(apiKey, blocked.text)
+      if (result.safe) {
+        await performTranslate(blocked.text)
+      } else {
+        setBlocked({ text: blocked.text, result })
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGuardChecking(false)
+    }
+  }
+
+  const handleStop = () => {
+    abortRef.current?.abort()
   }
 
   const handleSwap = () => {
@@ -130,12 +215,27 @@ export default function TranslatePage() {
 
           <button
             type="button"
-            onClick={handleTranslate}
-            disabled={loading || !apiKey}
-            className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed rounded px-4 py-2 text-sm font-medium text-white flex items-center gap-2"
+            onClick={loading ? handleStop : handleTranslate}
+            disabled={guardChecking || (!loading && !apiKey)}
+            className={`disabled:cursor-not-allowed rounded px-4 py-2 text-sm font-medium text-white flex items-center gap-2 ${
+              loading
+                ? "bg-red-600 hover:bg-red-700"
+                : "bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700"
+            }`}
           >
-            {loading && <Loader2 size={16} className="animate-spin" />}
-            {loading ? "翻訳中..." : "翻訳"}
+            {loading ? (
+              <>
+                <Square size={16} />
+                停止
+              </>
+            ) : (
+              <>
+                {guardChecking && (
+                  <Loader2 size={16} className="animate-spin" />
+                )}
+                {guardChecking ? "確認中..." : "翻訳"}
+              </>
+            )}
           </button>
 
           <button
@@ -179,6 +279,17 @@ export default function TranslatePage() {
           </div>
         )}
 
+        {blocked && (
+          <GuardNotice
+            result={blocked.result}
+            onRevise={() => sourceRef.current?.focus()}
+            onRetry={() => void retryGuard()}
+            onProceed={() => void performTranslate(blocked.text)}
+            proceedLabel="このまま翻訳"
+            retrying={guardChecking}
+          />
+        )}
+
         <div className="grid md:grid-cols-2 gap-4">
           <section>
             <div className="flex items-center justify-between mb-2">
@@ -213,6 +324,10 @@ export default function TranslatePage() {
             </div>
           </section>
         </div>
+
+        {outputGuard && (
+          <GuardNotice result={outputGuard} compact />
+        )}
       </main>
     </div>
   )

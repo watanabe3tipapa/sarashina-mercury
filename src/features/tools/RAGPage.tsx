@@ -1,9 +1,18 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Link } from "react-router-dom"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
+import { Loader2, Square } from "lucide-react"
 import { useSettingsStore } from "@/store/useSettingsStore"
-import { rerank, streamChat, type ChatMessage } from "@/lib/api/sarashina"
+import {
+  rerank,
+  streamChat,
+  guard,
+  isAbortError,
+  type ChatMessage,
+  type GuardResult,
+} from "@/lib/api/sarashina"
+import GuardNotice from "@/components/GuardNotice"
 import SourceCitation from "@/components/SourceCitation"
 
 interface RankedDoc {
@@ -20,14 +29,22 @@ const RAG_SYSTEM_PROMPT = `あなたは与えられた資料のみに基づい�
 - 資料に書かれていない内容は推測せず「資料からは分かりません」と答えてください。`
 
 export default function RAGPage() {
-  const { apiKey, model } = useSettingsStore()
+  const { apiKey, model, guardInput, guardOutput } = useSettingsStore()
   const [query, setQuery] = useState("")
   const [docs, setDocs] = useState("")
   const [answer, setAnswer] = useState("")
   const [sources, setSources] = useState<RankedDoc[]>([])
   const [active, setActive] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [guardChecking, setGuardChecking] = useState(false)
   const [error, setError] = useState("")
+  const [blocked, setBlocked] = useState<{
+    query: string
+    documents: string[]
+    result: GuardResult
+  } | null>(null)
+  const [outputGuard, setOutputGuard] = useState<GuardResult | null>(null)
+  const abortRef = useRef<AbortController | null>(null)
 
   const scrollToSource = (n: string) => {
     document
@@ -36,25 +53,33 @@ export default function RAGPage() {
     setActive(n)
   }
 
-  const handleRun = async () => {
-    if (!query.trim() || !docs.trim() || !apiKey || loading) return
-    const documents = docs
-      .split("\n\n")
-      .map((d) => d.trim())
-      .filter(Boolean)
-      .slice(0, MAX_DOCS)
+  const performRun = async (queryText: string, documents: string[]) => {
+    if (!apiKey) return
+
     setLoading(true)
     setAnswer("")
     setSources([])
     setActive(null)
     setError("")
+    setBlocked(null)
+    setOutputGuard(null)
 
+    const controller = new AbortController()
+    abortRef.current = controller
+
+    let streamed = ""
     try {
-      const reranked = await rerank(apiKey, { query, documents })
-      const top = (reranked.data?.[0]?.result ?? []).slice(0, TOP_K).map((r) => ({
-        ...r,
-        document: documents[r.document_id] ?? "",
-      }))
+      const reranked = await rerank(
+        apiKey,
+        { query: queryText, documents },
+        controller.signal
+      )
+      const top = (reranked.data?.[0]?.result ?? [])
+        .slice(0, TOP_K)
+        .map((r) => ({
+          ...r,
+          document: documents[r.document_id] ?? "",
+        }))
       setSources(top)
 
       const context = top
@@ -64,18 +89,83 @@ export default function RAGPage() {
         { role: "system", content: RAG_SYSTEM_PROMPT },
         {
           role: "user",
-          content: `# 資料\n${context}\n\n# 質問\n${query}`,
+          content: `# 資料\n${context}\n\n# 質問\n${queryText}`,
         },
       ]
 
-      for await (const chunk of streamChat(apiKey, { model, messages })) {
+      for await (const chunk of streamChat(
+        apiKey,
+        { model, messages },
+        controller.signal
+      )) {
+        streamed += chunk.content
         setAnswer((prev) => prev + chunk.content)
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      if (!isAbortError(e)) {
+        setError(e instanceof Error ? e.message : String(e))
+      }
     } finally {
       setLoading(false)
+      abortRef.current = null
     }
+
+    if (guardOutput && !controller.signal.aborted && streamed.trim()) {
+      try {
+        const result = await guard(apiKey, streamed)
+        if (!result.safe) setOutputGuard(result)
+      } catch {
+        // 出力後の Guard は補助的なので失敗しても無視する
+      }
+    }
+  }
+
+  const handleRun = async () => {
+    if (!query.trim() || !docs.trim() || !apiKey || loading || guardChecking)
+      return
+    const documents = docs
+      .split("\n\n")
+      .map((d) => d.trim())
+      .filter(Boolean)
+      .slice(0, MAX_DOCS)
+
+    if (guardInput) {
+      setGuardChecking(true)
+      try {
+        const result = await guard(apiKey, query)
+        if (!result.safe) {
+          setBlocked({ query, documents, result })
+          return
+        }
+      } catch {
+        // Guard が失敗した場合は実行を優先する（補助機能）
+      } finally {
+        setGuardChecking(false)
+      }
+    }
+
+    await performRun(query, documents)
+  }
+
+  const retryGuard = async () => {
+    if (!apiKey || !blocked) return
+    setGuardChecking(true)
+    try {
+      const result = await guard(apiKey, blocked.query)
+      if (result.safe) {
+        await performRun(blocked.query, blocked.documents)
+      } else {
+        setBlocked({ ...blocked, result })
+      }
+    } catch {
+      // ignore
+    } finally {
+      setGuardChecking(false)
+    }
+  }
+
+  const handleStop = () => {
+    abortRef.current?.abort()
   }
 
   // Convert bare citations like [1] into links while leaving real Markdown
@@ -102,6 +192,7 @@ export default function RAGPage() {
         <div>
           <label className="block text-sm mb-2">質問</label>
           <input
+            id="rag-query"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full bg-slate-900 border border-slate-700 rounded p-3"
@@ -119,17 +210,40 @@ export default function RAGPage() {
           />
         </div>
         <button
-          onClick={handleRun}
-          disabled={loading}
-          className="bg-blue-600 px-4 py-2 rounded disabled:bg-slate-700"
+          onClick={loading ? handleStop : handleRun}
+          disabled={guardChecking || (!loading && (!query.trim() || !docs.trim()))}
+          className={`flex items-center gap-2 px-4 py-2 rounded text-white disabled:bg-slate-700 disabled:cursor-not-allowed ${
+            loading ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          {loading ? "処理中..." : "検索して回答"}
+          {loading ? (
+            <>
+              <Square size={16} />
+              停止
+            </>
+          ) : (
+            <>
+              {guardChecking && <Loader2 size={16} className="animate-spin" />}
+              {guardChecking ? "確認中..." : "検索して回答"}
+            </>
+          )}
         </button>
 
         {error && (
           <div className="text-sm text-red-400 border border-red-800 rounded p-3">
             {error}
           </div>
+        )}
+
+        {blocked && (
+          <GuardNotice
+            result={blocked.result}
+            onRevise={() => document.getElementById("rag-query")?.focus()}
+            onRetry={() => void retryGuard()}
+            onProceed={() => void performRun(blocked.query, blocked.documents)}
+            proceedLabel="このまま実行"
+            retrying={guardChecking}
+          />
         )}
 
         {(answer || sources.length > 0) && (
@@ -167,6 +281,11 @@ export default function RAGPage() {
                   {answerWithLinks}
                 </ReactMarkdown>
               </article>
+              {outputGuard && (
+                <div className="mt-3">
+                  <GuardNotice result={outputGuard} compact />
+                </div>
+              )}
             </section>
             <aside className="space-y-3">
               <h2 className="text-sm font-medium text-slate-400 mb-2">
