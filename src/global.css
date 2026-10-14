@@ -97,3 +97,40 @@
   border-radius: 0.5rem;
   max-width: 100%;
 }
+
+/* Lexical editor */
+.editor-content {
+  outline: none;
+}
+.editor-paragraph {
+  margin: 0 0 0.6em;
+}
+.editor-paragraph:last-child {
+  margin-bottom: 0;
+}
+.editor-bold {
+  font-weight: 700;
+}
+.editor-italic {
+  font-style: italic;
+}
+.editor-underline {
+  text-decoration: underline;
+}
+.editor-strike {
+  text-decoration: line-through;
+}
+.editor-placeholder {
+  position: absolute;
+  top: 0.75rem;
+  left: 1rem;
+  right: 1rem;
+  color: #64748b;
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+.editor-synced {
+  background: rgba(59, 130, 246, 0.18);
+  box-shadow: -3px 0 0 0 #3b82f6;
+  border-radius: 2px;
+}

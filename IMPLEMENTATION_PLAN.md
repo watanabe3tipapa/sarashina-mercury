@@ -41,8 +41,8 @@ Mercury Editor を参考にした、Sarashina AI 専用の PWA ツール。
 - [x] RAG（Rerank + Chat + 根拠表示）
 - [x] Guard 判定の表示
 - [x] サイドバー UI（チャット・ツール切替）
+- [x] 翻訳エディタ（Lexical 並列対訳・段落ホバー同期）
 - [ ] Guard 警告 UI（回復導線の強化）
-- [ ] 翻訳エディタ（lexical ベースの編集体験）
 
 ## v1.2（予定）
 

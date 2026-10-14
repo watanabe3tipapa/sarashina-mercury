@@ -53,7 +53,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 ### 機能
 
 - **チャット** — `sarashina3-mini` / `sarashina3-nano` を切替可能なストリーミング対話。Markdown + GFM をレンダリング
-- **翻訳** — 方向（日→英 / 英→日）とトーン（`business-formal` / `business-casual` / `technical` / `marketing`）を指定した翻訳
+- **翻訳エディタ** — Lexical ベースの並列対訳。方向（日→英 / 英→日）とトーン（`business-formal` / `business-casual` / `technical` / `marketing`）を指定し、段落をホバーで対応付け。訳文はそのまま編集・コピー・入れ替えが可能
 - **RAG** — クエリと文書群に対する Embeddings + Rerank で、根拠付きの関連度順結果を表示
 - **Guard** — 入力テキストの安全性判定結果を表示
 - **設定** — API キーと既定モデルをブラウザに保存・切替
@@ -190,10 +190,12 @@ src/
 │   ├── chat/ChatPage.tsx          # チャット（ストリーミング）
 │   ├── settings/SettingsPage.tsx  # API キー / モデル設定
 │   └── tools/
-│       ├── TranslatePage.tsx      # 翻訳（トーン制御）
+│       ├── TranslatePage.tsx      # 翻訳エディタ（Lexical・トーン制御）
 │       ├── RAGPage.tsx            # Rerank + Chat（引用元付き回答）
 │       └── GuardPage.tsx          # 安全性判定
-├── components/SourceCitation.tsx  # 引用元カード（関連度バー・スクロール）
+├── components/
+│   ├── SourceCitation.tsx         # 引用元カード（関連度バー・スクロール）
+│   └── editor/EditorPane.tsx      # Lexical エディタ（並列対訳）
 ├── lib/
 │   ├── api/sarashina.ts           # Sarashina API クライアント
 │   ├── db/conversations.ts        # 会話履歴の永続化（IndexedDB）

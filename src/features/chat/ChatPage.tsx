@@ -114,7 +114,7 @@ export default function ChatPage() {
           </Link>
           <Link to="/translate" className="flex items-center gap-2 p-2 rounded hover:bg-slate-800">
             <Languages size={18} />
-            <span>翻訳</span>
+            <span>翻訳エディタ</span>
           </Link>
           <Link to="/rag" className="flex items-center gap-2 p-2 rounded hover:bg-slate-800">
             <Search size={18} />

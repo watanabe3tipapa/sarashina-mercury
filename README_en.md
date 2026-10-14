@@ -53,7 +53,7 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 ### Functionality
 
 - **Chat** — switchable streaming chat with `sarashina3-mini` / `sarashina3-nano`, rendering Markdown + GFM
-- **Translate** — translation with direction (JA→EN / EN→JA) and tone (`business-formal` / `business-casual` / `technical` / `marketing`)
+- **Translation editor** — a Lexical-based parallel editor. Choose direction (JA→EN / EN→JA) and tone (`business-formal` / `business-casual` / `technical` / `marketing`), hover a paragraph to pair it across panes, and edit, copy, or swap the translation in place
 - **RAG** — Embeddings + Rerank over a query and documents, showing relevance-ranked results with their sources
 - **Guard** — displays the safety classification of the input text
 - **Settings** — save and switch the API key and default model in the browser
@@ -190,10 +190,12 @@ src/
 │   ├── chat/ChatPage.tsx          # Chat (streaming)
 │   ├── settings/SettingsPage.tsx  # API key / model settings
 │   └── tools/
-│       ├── TranslatePage.tsx      # Translation (tone control)
+│       ├── TranslatePage.tsx      # Translation editor (Lexical, tone control)
 │       ├── RAGPage.tsx            # Rerank + chat (answers with citations)
 │       └── GuardPage.tsx          # Safety classification
-├── components/SourceCitation.tsx  # Citation card (relevance bar, scroll)
+├── components/
+│   ├── SourceCitation.tsx         # Citation card (relevance bar, scroll)
+│   └── editor/EditorPane.tsx      # Lexical editor (parallel translation)
 ├── lib/
 │   ├── api/sarashina.ts           # Sarashina API client
 │   ├── db/conversations.ts        # Conversation persistence (IndexedDB)
