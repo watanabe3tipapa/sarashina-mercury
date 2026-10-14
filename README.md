@@ -7,7 +7,7 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 > **日本語の豊かさを技術で支える。** 婉曲表現・省略・文脈推論――Sarashina が体現する日本語の豊かさを、単なる機能の羅列ではなく編集体験として、ユーザーの手元に届けること。それが sarashina-mercury の狙いです。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.2-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.3-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
@@ -52,10 +52,10 @@ sarashina-mercury は、SB Intuitions の国産大規模言語モデル「Sarash
 
 ### 機能
 
-- **チャット** — `sarashina3-mini` / `sarashina3-nano` を切替可能なストリーミング対話。Markdown + GFM をレンダリング
+- **チャット** — `sarashina3-mini` / `sarashina3-nano` を切替可能なストリーミング対話。Markdown + GFM をレンダリング。生成中は「停止」でいつでも中断可能
 - **翻訳エディタ** — Lexical ベースの並列対訳。方向（日→英 / 英→日）とトーン（`business-formal` / `business-casual` / `technical` / `marketing`）を指定し、段落をホバーで対応付け。訳文はそのまま編集・コピー・入れ替えが可能
-- **RAG** — クエリと文書群に対する Embeddings + Rerank で、根拠付きの関連度順結果を表示
-- **Guard** — 入力テキストの安全性判定。カテゴリ別の理由提示と「別の表現を試す」回復導線を備え、威圧的でない穏やかな警告として表示
+- **RAG** — クエリと文書群に対する Embeddings + Rerank で、根拠付きの関連度順結果を表示。回答生成の中断にも対応
+- **Guard** — 入力・出力テキストの安全性判定。設定でチャット / 翻訳 / RAG の送信前・応答後に自動チェックを有効化できる。カテゴリ別の理由提示と「別の表現を試す」回復導線を備え、威圧的でない穏やかな警告として表示
 - **設定** — API キーと既定モデルをブラウザに保存・切替。API キーはセッション限定（`sessionStorage`）での保持も選択可能。テーマはシステム / ライト / ダークを切替（`prefers-color-scheme` 連携）
 
 ### アーキテクチャ
@@ -196,6 +196,7 @@ src/
 ├── components/
 │   ├── SourceCitation.tsx         # 引用元カード（関連度バー・スクロール）
 │   ├── GuardNotice.tsx            # Guard の穏やかな警告（カテゴリ別理由・言い換え支援）
+│   ├── ErrorBoundary.tsx          # アプリ全体の例外フォールバック
 │   └── editor/EditorPane.tsx      # Lexical エディタ（並列対訳）
 ├── hooks/
 │   └── useThemeSync.ts            # テーマ適用・OS 設定への追従
@@ -219,13 +220,22 @@ worker/                            # CORS 回避用 Cloudflare Worker プロキ�
 
 ## ロードマップ
 
-### v0.1.3（開発中）
+### v0.1.3（リリース済み）
 
+- [x] Guard の送信前 / 応答後の自動適用（チャット・翻訳・RAG、設定で ON/OFF）
+- [x] ストリーミングの停止（チャット・翻訳・RAG の中断ボタン）
 - [x] Guard の回復導線 UI（カテゴリ別の理由提示・言い換え支援・再判定）
 - [x] API キーのセッション限定保存オプション（`sessionStorage`）
 - [x] ライトテーマ（`prefers-color-scheme` 連携、システム / ライト / ダーク選択）
+- [x] アプリ全体の ErrorBoundary（予期しない例外のフォールバック）
+- [x] IndexedDB 利用不可時のフォールバックと通知（プライベートモード等）
 - [x] Vitest + React Testing Library による単体テスト（API クライアント・ストア・UI）
+- [x] CI に lint ステップを追加
+
+### v0.1.4（予定）
+
 - [ ] トークン / 料金のリアルタイム推定
+- [ ] カスタムドメイン / 日本リージョン固定プロキシによる CORS 安定化
 
 ### v0.1.2（リリース済み）
 

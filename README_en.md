@@ -7,7 +7,7 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 > **Backing the richness of Japanese with technology.** Euphemism, omission, and inference from context — sarashina-mercury aims to deliver the richness Sarashina embodies not as a list of features but as an editing experience, right in your hands.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-v0.1.2-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
+[![Version](https://img.shields.io/badge/version-v0.1.3-blue.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/releases)
 [![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-live-blue.svg)](https://watanabe3tipapa.github.io/sarashina-mercury/)
 [![GitHub](https://img.shields.io/github/issues/watanabe3tipapa/sarashina-mercury.svg)](https://github.com/watanabe3tipapa/sarashina-mercury/issues)
 
@@ -52,10 +52,10 @@ sarashina-mercury is a PWA that lets you use SB Intuitions' Japanese large langu
 
 ### Functionality
 
-- **Chat** — switchable streaming chat with `sarashina3-mini` / `sarashina3-nano`, rendering Markdown + GFM
+- **Chat** — switchable streaming chat with `sarashina3-mini` / `sarashina3-nano`, rendering Markdown + GFM, with a "Stop" button to interrupt generation
 - **Translation editor** — a Lexical-based parallel editor. Choose direction (JA→EN / EN→JA) and tone (`business-formal` / `business-casual` / `technical` / `marketing`), hover a paragraph to pair it across panes, and edit, copy, or swap the translation in place
-- **RAG** — Embeddings + Rerank over a query and documents, showing relevance-ranked results with their sources
-- **Guard** — classifies the input text for safety, explains the reason per category, and offers a "try another expression" recovery path instead of a blunt block
+- **RAG** — Embeddings + Rerank over a query and documents, showing relevance-ranked results with their sources; answer generation can also be interrupted
+- **Guard** — classifies input and output text for safety, explaining the reason per category and offering a "try another expression" recovery path instead of a blunt block. Optional automatic checks before sending and after responding in chat / translation / RAG
 - **Settings** — save and switch the API key and default model in the browser; the API key can optionally be kept session-only (`sessionStorage`). Choose system / light / dark theme (follows `prefers-color-scheme`)
 
 ### Architecture
@@ -196,6 +196,7 @@ src/
 ├── components/
 │   ├── SourceCitation.tsx         # Citation card (relevance bar, scroll)
 │   ├── GuardNotice.tsx            # Gentle Guard warning (category reasons, rewrite tips)
+│   ├── ErrorBoundary.tsx          # App-wide fallback for unexpected errors
 │   └── editor/EditorPane.tsx      # Lexical editor (parallel translation)
 ├── hooks/
 │   └── useThemeSync.ts            # Applies the theme and follows the OS setting
@@ -219,13 +220,22 @@ worker/                            # Cloudflare Worker proxy for CORS
 
 ## Roadmap
 
-### v0.1.3 (in development)
+### v0.1.3 (released)
 
+- [x] Optional automatic Guard checks before sending and after responding (chat / translation / RAG; toggle in settings)
+- [x] Stream interruption (stop buttons in chat / translation / RAG)
 - [x] Guard recovery UI (per-category reasons, rewrite tips, re-check)
 - [x] Optional session-only API key storage (`sessionStorage`)
 - [x] Light theme (follows `prefers-color-scheme`; system / light / dark)
+- [x] App-wide ErrorBoundary (fallback for unexpected errors)
+- [x] Fallback and notice when IndexedDB is unavailable (private mode, etc.)
 - [x] Unit tests with Vitest + React Testing Library (API client, stores, UI)
+- [x] Add a lint step to CI
+
+### v0.1.4 (planned)
+
 - [ ] Real-time token / cost estimation
+- [ ] Custom domain / Japan-pinned proxy for CORS stability
 
 ### v0.1.2 (released)
 
